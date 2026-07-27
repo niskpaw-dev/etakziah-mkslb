@@ -1,0 +1,899 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>e-Takziah MKSLB · Penjanaan Hebahan Kematian</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,700;0,9..144,800;1,9..144,500&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Amiri:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --p: #0f3d1c;
+            --s: #1b5e20;
+            --s2: #2e7d32;
+            --dark: #0a1410;
+            --gold: #d4af37;
+            --gold-soft: #e8c76a;
+            --cream: #faf7f0;
+            --err: #c53030;
+            --warn: #d97706;
+            --ok: #128C7E;
+            --ink: #1a1a1a;
+            --muted: #6b7280;
+            --line: #e5e7eb;
+        }
+
+* { box-sizing: border-box; }
+
+body {
+            font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+            background:
+                radial-gradient(ellipse at top left, rgba(212,175,55,0.08), transparent 50%),
+                radial-gradient(ellipse at bottom right, rgba(27,94,32,0.4), transparent 50%),
+                linear-gradient(135deg, var(--dark) 0%, #0f2418 100%);
+            background-attachment: fixed;
+            margin: 0;
+            padding: 24px 16px;
+            min-height: 100vh;
+            color: var(--ink);
+            line-height: 1.5;
+        }
+
+/* Subtle geometric pattern overlay */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image:
+                repeating-linear-gradient(45deg, transparent 0, transparent 40px, rgba(212,175,55,0.015) 40px, rgba(212,175,55,0.015) 41px),
+                repeating-linear-gradient(-45deg, transparent 0, transparent 40px, rgba(212,175,55,0.015) 40px, rgba(212,175,55,0.015) 41px);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+.wrap {
+            max-width: 640px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
+.card {
+            background: var(--cream);
+            border-radius: 20px;
+            padding: 28px 24px;
+            box-shadow:
+                0 20px 50px rgba(0,0,0,0.4),
+                0 0 0 1px rgba(212,175,55,0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+.card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--gold), var(--gold-soft), var(--gold));
+        }
+
+.masthead {
+            text-align: center;
+            margin-bottom: 24px;
+            padding-bottom: 20px;
+            border-bottom: 1px dashed rgba(15,61,28,0.2);
+        }
+
+.masthead .kicker {
+            font-size: 10px;
+            letter-spacing: 3px;
+            color: var(--gold);
+            font-weight: 700;
+            text-transform: uppercase;
+            margin-bottom: 6px;
+        }
+
+.masthead h1 {
+            font-family: 'Fraunces', Georgia, serif;
+            font-weight: 800;
+            font-size: 24px;
+            color: var(--p);
+            margin: 0;
+            letter-spacing: -0.02em;
+            line-height: 1.15;
+        }
+
+.masthead .sub {
+            font-size: 12px;
+            color: var(--muted);
+            margin-top: 4px;
+            font-style: italic;
+        }
+
+.sec {
+            background: #fff;
+            padding: 18px;
+            border-radius: 14px;
+            margin-bottom: 14px;
+            border: 1px solid var(--line);
+            border-left: 4px solid var(--s);
+            transition: border-color 0.2s;
+        }
+
+.sec:focus-within {
+            border-left-color: var(--gold);
+        }
+
+.sec-t {
+            font-family: 'Fraunces', Georgia, serif;
+            font-weight: 700;
+            font-size: 14px;
+            color: var(--p);
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+.sec-t::before {
+            content: '';
+            width: 6px;
+            height: 6px;
+            background: var(--gold);
+            border-radius: 50%;
+        }
+
+label {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: block;
+            margin-bottom: 4px;
+        }
+
+input, select, textarea {
+            width: 100%;
+            padding: 11px 12px;
+            border: 1.5px solid var(--line);
+            border-radius: 9px;
+            font-size: 14px;
+            font-family: inherit;
+            background: #fff;
+            color: var(--ink);
+            transition: border-color 0.15s, box-shadow 0.15s;
+            text-transform: uppercase;
+        }
+
+input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--s);
+            box-shadow: 0 0 0 3px rgba(27,94,32,0.12);
+        }
+
+input.err, select.err, textarea.err {
+            border-color: var(--err);
+            box-shadow: 0 0 0 3px rgba(197,48,48,0.12);
+        }
+
+input[type="date"], input[type="time"], input[type="tel"] {
+            text-transform: none;
+        }
+
+textarea {
+            resize: vertical;
+            min-height: 60px;
+        }
+
+.grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+.row {
+            display: grid;
+            grid-template-columns: 28px 110px 1fr;
+            gap: 10px;
+            align-items: center;
+            margin-top: 10px;
+        }
+
+.row input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            accent-color: var(--s);
+        }
+
+.h-txt {
+            font-size: 10px;
+            color: var(--muted);
+            margin: 4px 0 10px 38px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+        }
+
+.m-inp {
+            display: none;
+            background: #fffbeb;
+            border-color: #fbbf24;
+            margin: 6px 0 0 38px;
+            width: calc(100% - 38px);
+        }
+
+.err-msg {
+            color: var(--err);
+            font-size: 11px;
+            margin-top: 4px;
+            font-weight: 600;
+            display: none;
+        }
+
+.err-msg.show { display: block; }
+
+.warn-msg {
+            background: #fffbeb;
+            border: 1px solid #fbbf24;
+            color: #92400e;
+            padding: 10px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-top: 10px;
+            display: none;
+        }
+
+.warn-msg.show { display: block; }
+
+/* Preview */
+        .preview-wrap {
+            margin-top: 18px;
+            background: #0a4d2e;
+            padding: 16px;
+            border-radius: 14px;
+            position: relative;
+        }
+
+.preview-wrap::before {
+            content: 'PRATONTON WHATSAPP';
+            position: absolute;
+            top: -9px;
+            left: 16px;
+            background: var(--gold);
+            color: var(--p);
+            font-size: 9px;
+            font-weight: 800;
+            padding: 3px 10px;
+            border-radius: 20px;
+            letter-spacing: 1.2px;
+        }
+
+.preview-box {
+            background: #dcf8c6;
+            border-radius: 12px;
+            padding: 14px 16px;
+            font-size: 13px;
+            white-space: pre-wrap;
+            font-family: -apple-system, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.5;
+            color: #0b141a;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            position: relative;
+            word-wrap: break-word;
+        }
+
+.preview-box::after {
+            content: '';
+            position: absolute;
+            right: -8px;
+            top: 0;
+            width: 0; height: 0;
+            border-left: 8px solid #dcf8c6;
+            border-top: 8px solid transparent;
+        }
+
+.preview-box .ar {
+            font-family: 'Amiri', serif;
+            font-size: 17px;
+            direction: rtl;
+            display: block;
+            text-align: center;
+            margin: 4px 0;
+            line-height: 1.8;
+        }
+
+.meta-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 10px;
+            font-size: 10px;
+            color: rgba(255,255,255,0.7);
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+.char-count { font-variant-numeric: tabular-nums; }
+
+/* Buttons */
+        .btn {
+            width: 100%;
+            padding: 15px 18px;
+            border: none;
+            border-radius: 11px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.15s, box-shadow 0.15s, filter 0.15s;
+            font-size: 14px;
+            font-family: inherit;
+            letter-spacing: 0.3px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+.btn:hover { filter: brightness(1.08); transform: translateY(-1px); }
+        .btn:active { transform: translateY(0); }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+.btn-primary {
+            background: linear-gradient(135deg, #25D366, #128C7E);
+            color: #fff;
+            box-shadow: 0 4px 14px rgba(18,140,126,0.4);
+            margin-top: 16px;
+            padding: 17px;
+            font-size: 15px;
+        }
+
+.btn-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+.btn-copy { background: #1f2937; color: #fff; }
+        .btn-reset { background: #fff; color: var(--err); border: 1.5px solid var(--err); }
+
+/* Toast */
+        .toast-wrap {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            pointer-events: none;
+        }
+
+.toast {
+            background: var(--ink);
+            color: #fff;
+            padding: 12px 20px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 600;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            animation: slideUp 0.3s ease;
+            pointer-events: auto;
+            max-width: 90vw;
+            text-align: center;
+        }
+
+.toast.ok { background: var(--ok); }
+        .toast.err { background: var(--err); }
+        .toast.warn { background: var(--warn); }
+
+@keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+.toast.out { animation: slideDown 0.3s ease forwards; }
+        @keyframes slideDown {
+            to { opacity: 0; transform: translateY(20px); }
+        }
+
+/* Modal (for confirm) */
+        .modal-bg {
+            position: fixed; inset: 0;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(4px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 9998;
+            padding: 20px;
+        }
+        .modal-bg.show { display: flex; }
+
+.modal {
+            background: #fff;
+            border-radius: 16px;
+            padding: 24px;
+            max-width: 380px;
+            width: 100%;
+            text-align: center;
+            animation: popIn 0.2s ease;
+        }
+        @keyframes popIn {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+.modal h3 {
+            font-family: 'Fraunces', serif;
+            color: var(--err);
+            margin: 0 0 8px;
+            font-size: 18px;
+        }
+        .modal p { color: var(--muted); font-size: 13px; margin: 0 0 20px; }
+        .modal .btn-group { margin: 0; }
+        .modal .btn-cancel { background: var(--line); color: var(--ink); }
+        .modal .btn-confirm { background: var(--err); color: #fff; }
+
+/* Footer */
+        .footer {
+            margin-top: 24px;
+            text-align: center;
+            color: rgba(255,255,255,0.45);
+            font-size: 10px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            font-weight: 500;
+        }
+        .footer span { color: var(--gold); font-weight: 700; }
+
+.save-ind {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 10px;
+            color: var(--ok);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .save-ind.show { opacity: 1; }
+
+@media (max-width: 480px) {
+            .grid { grid-template-columns: 1fr; }
+            .row { grid-template-columns: 24px 95px 1fr; gap: 8px; }
+            .masthead h1 { font-size: 20px; }
+            .card { padding: 22px 18px; }
+        }
+    </style>
+</head>
+<body onload="init()">
+
+<div class="wrap">
+    <div class="card">
+        <div class="save-ind" id="saveInd">✓ Disimpan</div>
+
+<div class="masthead">
+            <div class="kicker">Biro Khairat MKSLB</div>
+            <h1>Penjanaan Hebahan Kematian</h1>
+            <div class="sub">Masjid Kampung Sungai Lang Baru</div>
+        </div>
+
+<!-- ARWAH -->
+        <div class="sec">
+            <div class="sec-t">Maklumat Arwah</div>
+
+<label for="jnt">Jantina</label>
+            <select id="jnt" onchange="update()">
+                <option value="l">LELAKI</option>
+                <option value="p">WANITA</option>
+            </select>
+
+<label for="nm" style="margin-top:12px">Nama Arwah *</label>
+            <input type="text" id="nm" placeholder="NAMA PENUH ARWAH" oninput="update()" required>
+            <div class="err-msg" id="nm-err">Sila isi nama arwah</div>
+
+<div class="grid" style="margin-top:12px">
+                <div>
+                    <label for="umr">Umur (tahun) *</label>
+                    <input type="number" id="umr" placeholder="75" min="0" max="130" oninput="update()">
+                    <div class="err-msg" id="umr-err">Umur tidak sah (0–130)</div>
+                </div>
+                <div>
+                    <label for="trk">Tarikh Meninggal *</label>
+                    <input type="date" id="trk" onchange="syncDate(this.value)">
+                    <div class="err-msg" id="trk-err">Sila pilih tarikh</div>
+                </div>
+            </div>
+
+<label for="alm" style="margin-top:12px">Alamat Rumah</label>
+            <textarea id="alm" rows="2" placeholder="ALAMAT LENGKAP ARWAH" oninput="update()"></textarea>
+        </div>
+
+<!-- JADUAL -->
+        <div class="sec">
+            <div class="sec-t">Jadual Pengurusan Jenazah</div>
+
+<label for="trkP">Tarikh Pengurusan *</label>
+            <input type="date" id="trkP" onchange="update()" style="background:#f0fdf4; font-weight:700; color:var(--p)">
+            <div class="err-msg" id="trkP-err">Sila pilih tarikh pengurusan</div>
+            <div class="warn-msg" id="date-warn">⚠️ Tarikh pengurusan sebelum tarikh kematian</div>
+
+<div id="jadual-container" style="margin-top:14px"></div>
+
+<div class="row">
+                <input type="checkbox" id="c5" checked onchange="update()" aria-label="Pengebumian">
+                <input type="time" id="m5" value="17:00" onchange="update()">
+                <select id="l5" onchange="tgl(5); update()">
+                    <option value="TANAH PERKUBURAN TAMAN FIRDAUS">TP TAMAN FIRDAUS</option>
+                    <option value="EX">LAIN-LAIN (NYATAKAN)</option>
+                </select>
+            </div>
+            <input type="text" id="o5" class="m-inp" placeholder="NAMA TANAH PERKUBURAN" oninput="update()">
+            <p class="h-txt">🪦 Pengebumian</p>
+
+<div class="warn-msg" id="time-warn">⚠️ Urutan masa tidak mengikut turutan</div>
+        </div>
+
+<!-- TAHLIL & WARIS -->
+        <div class="sec">
+            <div class="sec-t">Tahlil & Waris</div>
+
+<label for="thl">Tahlil (Malam 1–3)</label>
+            <input type="text" id="thl" placeholder="SELEPAS MAGHRIB DI RUMAH ARWAH" oninput="update()">
+
+<div class="grid" style="margin-top:12px">
+                <div>
+                    <label for="ws">No. Tel Waris</label>
+                    <input type="tel" id="ws" placeholder="019-234 5678" oninput="update()">
+                </div>
+                <div>
+                    <label for="hbg">Hubungan</label>
+                    <input type="text" id="hbg" placeholder="CTH: ANAK LELAKI" oninput="update()">
+                </div>
+            </div>
+        </div>
+
+<!-- PREVIEW -->
+        <div class="preview-wrap">
+            <div class="preview-box" id="preview"></div>
+            <div class="meta-bar">
+                <span>✓ Live Preview</span>
+                <span class="char-count" id="charCount">0 aksara</span>
+            </div>
+        </div>
+
+<button class="btn btn-primary" onclick="hantar()">
+            <span>🚀</span><span>JANA & HANTAR KE WHATSAPP</span>
+        </button>
+
+<div class="btn-group">
+            <button class="btn btn-copy" onclick="salinTeks()">📋 Salin Teks</button>
+            <button class="btn btn-reset" onclick="konfirmaReset()">🗑️ Reset</button>
+        </div>
+    </div>
+
+<div class="footer">
+        Developed by <span>NISKALA PAWAKA</span> © 2026
+    </div>
+</div>
+
+<!-- Toast container -->
+<div class="toast-wrap" id="toastWrap"></div>
+
+<!-- Confirm modal -->
+<div class="modal-bg" id="modalBg">
+    <div class="modal">
+        <h3>Padam Semua Data?</h3>
+        <p>Semua maklumat yang telah dimasukkan akan hilang. Tindakan ini tidak boleh dibatalkan.</p>
+        <div class="btn-group">
+            <button class="btn btn-cancel" onclick="tutupModal()">Batal</button>
+            <button class="btn btn-confirm" onclick="padamSemua()">Ya, Padam</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const STORAGE_KEY = 'mkslb_etakziah_v3';
+    const KUBUR_LINK = "https://maps.app.goo.gl/7XCsheUpjUXKaXXZ9";
+
+    const gV = id => document.getElementById(id)?.value || '';
+    const gC = id => document.getElementById(id)?.checked || false;
+    const $ = id => document.getElementById(id);
+
+    // --- Formatters ---
+    const fmtPh = num => {
+        if (!num) return '';
+        let n = num.replace(/\D/g, '');
+        if (n.startsWith('60')) n = n.substring(2);
+        if (n.startsWith('0')) n = n.substring(1);
+        if (n.length === 9) return `0${n.substring(0,2)}-${n.substring(2,5)} ${n.substring(5)}`;
+        if (n.length === 10) return `0${n.substring(0,3)}-${n.substring(3,6)} ${n.substring(6)}`;
+        return num;
+    };
+
+    const fmtD = d => {
+        if (!d) return "---";
+        const dt = new Date(d + 'T00:00:00');
+        return dt.toLocaleDateString('ms-MY', {
+            weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
+        }).toUpperCase();
+    };
+
+    const fmtT = t => {
+        if (!t) return "--:--";
+        let [h, m] = t.split(':');
+        const suffix = h >= 12 ? 'PM' : 'AM';
+        h = (h % 12) || 12;
+        return `${h}:${m} ${suffix}`;
+    };
+
+    // --- Jadual builder ---
+    const LABELS = [
+        { l: "Ambil Jenazah", e: "🚐" },
+        { l: "Mandi & Kapan", e: "🚿" },
+        { l: "Tahlil Arwah", e: "🤲" },
+        { l: "Solat Jenazah", e: "🕌" }
+    ];
+    const DEFAULT_TIMES = ["15:15", "15:30", "16:00", "16:45"];
+
+    function buildJadual() {
+        let html = "";
+        LABELS.forEach((obj, i) => {
+            const id = i + 1;
+            const opts = (id === 1)
+                ? `<option selected>RUMAH</option><option>HOSPITAL</option><option value="EX">LAIN-LAIN</option>`
+                : `<option selected>MASJID-MKSLB</option><option>RUMAH</option><option>HOSPITAL</option><option value="EX">LAIN-LAIN</option>`;
+
+            html += `<div class="row">
+                <input type="checkbox" id="c${id}" checked onchange="update()" aria-label="${obj.l}">
+                <input type="time" id="m${id}" value="${DEFAULT_TIMES[i]}" onchange="update()">
+                <select id="l${id}" onchange="tgl(${id}); update()">${opts}</select>
+            </div>
+            <input type="text" id="o${id}" class="m-inp" placeholder="NYATAKAN LOKASI" oninput="update()">
+            <p class="h-txt">${obj.e} ${obj.l}</p>`;
+        });
+        $('jadual-container').innerHTML = html;
+    }
+
+    function tgl(id) {
+        const el = $('o' + id);
+        if (el) el.style.display = gV('l' + id) === 'EX' ? 'block' : 'none';
+    }
+
+    function syncDate(val) {
+        if (!$('trkP').value) $('trkP').value = val;
+        update();
+    }
+
+    // --- Toast ---
+    function toast(msg, type = '') {
+        const el = document.createElement('div');
+        el.className = 'toast ' + type;
+        el.textContent = msg;
+        $('toastWrap').appendChild(el);
+        setTimeout(() => {
+            el.classList.add('out');
+            setTimeout(() => el.remove(), 300);
+        }, 2200);
+    }
+
+    // --- Validation ---
+    function validate(silent = false) {
+        const errors = [];
+        const fields = {
+            nm: gV('nm').trim() ? null : 'Nama arwah diperlukan',
+            umr: (() => {
+                const v = parseInt(gV('umr'));
+                if (!gV('umr')) return 'Umur diperlukan';
+                if (isNaN(v) || v < 0 || v > 130) return 'Umur 0–130 sahaja';
+                return null;
+            })(),
+            trk: gV('trk') ? null : 'Tarikh meninggal diperlukan',
+            trkP: gV('trkP') ? null : 'Tarikh pengurusan diperlukan'
+        };
+
+        Object.keys(fields).forEach(k => {
+            const errEl = $(k + '-err');
+            const inp = $(k);
+            if (fields[k]) {
+                errors.push(fields[k]);
+                if (!silent) { errEl?.classList.add('show'); inp?.classList.add('err'); }
+            } else {
+                errEl?.classList.remove('show');
+                inp?.classList.remove('err');
+            }
+        });
+
+        // Date logic warning
+        const dateWarn = $('date-warn');
+        if (gV('trk') && gV('trkP') && gV('trkP') < gV('trk')) {
+            dateWarn.classList.add('show');
+        } else {
+            dateWarn.classList.remove('show');
+        }
+
+        // Time sequence warning
+        const times = [1,2,3,4,5].filter(i => gC('c'+i)).map(i => gV('m'+i));
+        const sorted = [...times].sort();
+        const timeWarn = $('time-warn');
+        if (times.length > 1 && JSON.stringify(times) !== JSON.stringify(sorted)) {
+            timeWarn.classList.add('show');
+        } else {
+            timeWarn.classList.remove('show');
+        }
+
+        return errors;
+    }
+
+    // --- Message generator ---
+    function janaMesej() {
+        const isLelaki = gV('jnt') === 'l';
+        const doa = isLelaki
+            ? "اللّٰهُمَّ اغْفِرْ لَهُ وَارْحَمْهُ وَعَافِهِ وَاعْفُ عَنْهُ"
+            : "اللّٰهُمَّ اغْفِرْ لَهَا وَارْحَمْهَا وَعَافِهَا وَاعْفُ عَنْهَا";
+
+        const basmalah = "إِنَّا لِلّٰهِ وَإِنَّا إِلَيْهِ رَاجِعُونَ";
+        const salam = "السَّلَامُ عَلَيْكُمْ وَرَحْمَةُ اللّٰهِ وَبَرَكَاتُهُ";
+
+        const gelaran = isLelaki ? "ALLAHYARHAM" : "ALLAHYARHAMAH";
+        const nama = gV('nm').toUpperCase().trim() || "---";
+        const umur = gV('umr') || "0";
+        const alamat = gV('alm').toUpperCase().trim() || "---";
+
+        let msg = `${salam}\n\n${basmalah}\n${doa}\n\n`;
+        msg += `*📢 MAKLUMAN KEMATIAN · MKSLB*\n`;
+        msg += `━━━━━━━━━━━━━━━━\n\n`;
+        msg += `👤 *${gelaran}:*\n${nama} (${umur} TAHUN)\n\n`;
+        msg += `🗓️ *TARIKH MENINGGAL:*\n${fmtD(gV('trk'))}\n\n`;
+        msg += `🏠 *ALAMAT:*\n${alamat}\n\n`;
+
+        msg += `━━━━━━━━━━━━━━━━\n`;
+        msg += `*⏰ JADUAL PENGURUSAN JENAZAH*\n`;
+        msg += `🗓️ ${fmtD(gV('trkP'))}\n━━━━━━━━━━━━━━━━\n`;
+
+        const akt = ["AMBIL JENAZAH", "MANDI & KAPAN", "TAHLIL ARWAH", "SOLAT JENAZAH", "PENGEBUMIAN"];
+        const emoji = ["🚐", "🚿", "🤲", "🕌", "🪦"];
+
+        for (let i = 1; i <= 5; i++) {
+            if (gC('c' + i)) {
+                const lok = (gV('l' + i) === 'EX') ? gV('o' + i) : gV('l' + i);
+                msg += `\n${emoji[i-1]} *${fmtT(gV('m'+i))}* · ${akt[i-1]}\n   ➜ ${(lok || "---").toUpperCase()}`;
+            }
+        }
+
+        if (gC('c5') && gV('l5').includes("TAMAN FIRDAUS")) {
+            msg += `\n\n📍 *Lokasi Perkuburan:*\n${KUBUR_LINK}`;
+        }
+
+        if (gV('thl').trim()) {
+            msg += `\n\n🕯️ *TAHLIL MALAM 1–3:*\n${gV('thl').toUpperCase().trim()}`;
+        }
+
+        msg += `\n\n━━━━━━━━━━━━━━━━\n`;
+        msg += `📞 *HUBUNGI WARIS:*\n`;
+        const phone = fmtPh(gV('ws'));
+        const hbg = gV('hbg').toUpperCase().trim() || "WARIS";
+        msg += phone ? `${phone} (${hbg})\n\n` : `---\n\n`;
+
+        msg += `*BIRO KHAIRAT MKSLB:*\n`;
+        msg += `• 019-274 9335 (HJ HASHIM)\n`;
+        msg += `• 010-280 2454 (HJ MAKSOM)\n\n`;
+
+        msg += `_Mohon sedekahkan Al-Fatihah buat Arwah..._\n\n`;
+        msg += `#BiroKhairatMKSLB #eTakziah`;
+
+        return msg;
+    }
+
+    // --- Preview with Arabic styling ---
+    function renderPreview() {
+        const msg = janaMesej();
+        // Style Arabic text in preview
+        const arabicRegex = /([\u0600-\u06FF\s،.؟]+)/g;
+        const styled = msg.replace(arabicRegex, m => {
+            if (m.trim().length > 5) return `<span class="ar">${m}</span>`;
+            return m;
+        });
+        $('preview').innerHTML = styled;
+        $('charCount').textContent = `${msg.length} aksara`;
+    }
+
+    // --- Persistence ---
+    let saveTimer;
+    function simpan() {
+        const data = {};
+        document.querySelectorAll('input, select, textarea').forEach(el => {
+            if (el.id) data[el.id] = el.type === 'checkbox' ? el.checked : el.value;
+        });
+        try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+            const ind = $('saveInd');
+            ind.classList.add('show');
+            clearTimeout(saveTimer);
+            saveTimer = setTimeout(() => ind.classList.remove('show'), 1500);
+        } catch (e) { /* storage full, ignore */ }
+    }
+
+    function muatData() {
+        try {
+            const data = JSON.parse(localStorage.getItem(STORAGE_KEY));
+            if (!data) return;
+            Object.keys(data).forEach(id => {
+                const el = $(id);
+                if (!el) return;
+                if (el.type === 'checkbox') el.checked = data[id];
+                else el.value = data[id];
+                if (id.startsWith('l') && id.length === 2) tgl(id.substring(1));
+            });
+        } catch (e) { console.warn('Load failed:', e); }
+    }
+
+    function update() {
+        validate(true);
+        renderPreview();
+        simpan();
+    }
+
+    // --- Actions ---
+    function hantar() {
+        const errs = validate(false);
+        if (errs.length) {
+            toast('Sila lengkapkan ruangan wajib (*)', 'err');
+            // Scroll to first error
+            const firstErr = document.querySelector('.err-msg.show');
+            if (firstErr) firstErr.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            return;
+        }
+        window.open(`https://wa.me/?text=${encodeURIComponent(janaMesej())}`, '_blank');
+        toast('Membuka WhatsApp...', 'ok');
+    }
+
+    async function salinTeks() {
+        const errs = validate(false);
+        if (errs.length) {
+            toast('Sila lengkapkan ruangan wajib (*)', 'err');
+            return;
+        }
+        try {
+            await navigator.clipboard.writeText(janaMesej());
+            toast('✓ Teks hebahan disalin!', 'ok');
+        } catch (e) {
+            // Fallback
+            const ta = document.createElement('textarea');
+            ta.value = janaMesej();
+            document.body.appendChild(ta);
+            ta.select();
+            document.execCommand('copy');
+            ta.remove();
+            toast('✓ Teks hebahan disalin!', 'ok');
+        }
+    }
+
+    function konfirmaReset() { $('modalBg').classList.add('show'); }
+    function tutupModal() { $('modalBg').classList.remove('show'); }
+
+    function padamSemua() {
+        localStorage.removeItem(STORAGE_KEY);
+        tutupModal();
+        toast('Data dipadam', 'warn');
+        setTimeout(() => location.reload(), 500);
+    }
+
+    // Close modal on backdrop click
+    document.addEventListener('click', e => {
+        if (e.target.id === 'modalBg') tutupModal();
+    });
+
+    // --- Init ---
+    function init() {
+        buildJadual();
+        muatData();
+        update();
+    }
+</script>
+
+</body>
+</html>
