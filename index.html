@@ -2,8 +2,26 @@
 <html lang="ms">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>e-Takziah MKSLB · Penjanaan Hebahan Kematian</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>e-Takziah MKSLB</title>
+
+    <!-- PWA Meta -->
+    <meta name="theme-color" content="#0f3d1c">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="e-Takziah">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="description" content="Penjanaan Hebahan Kematian · Biro Khairat MKSLB">
+
+    <!-- Inline manifest via data URI (no separate file needed) -->
+    <link rel="manifest" href='data:application/manifest+json;charset=utf-8,{"name":"e-Takziah MKSLB","short_name":"e-Takziah","description":"Penjanaan Hebahan Kematian Biro Khairat MKSLB","start_url":".","display":"standalone","orientation":"portrait","background_color":"%230a1410","theme_color":"%230f3d1c","icons":[{"src":"data:image/svg%2Bxml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 192 192%22><rect width=%22192%22 height=%22192%22 rx=%2242%22 fill=%22%230f3d1c%22/><path d=%22M96 36 L112 72 L150 76 L122 102 L130 140 L96 122 L62 140 L70 102 L42 76 L80 72 Z%22 fill=%22%23d4af37%22/><circle cx=%2296%22 cy=%2296%22 r=%2218%22 fill=%22none%22 stroke=%22%23d4af37%22 stroke-width=%223%22/></svg>","sizes":"192x192","type":"image/svg+xml","purpose":"any maskable"},{"src":"data:image/svg%2Bxml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 512 512%22><rect width=%22512%22 height=%22512%22 rx=%22112%22 fill=%22%230f3d1c%22/><path d=%22M256 96 L298 192 L400 202 L325 270 L346 372 L256 324 L166 372 L187 270 L112 202 L214 192 Z%22 fill=%22%23d4af37%22/><circle cx=%22256%22 cy=%22256%22 r=%2248%22 fill=%22none%22 stroke=%22%23d4af37%22 stroke-width=%228%22/></svg>","sizes":"512x512","type":"image/svg+xml","purpose":"any maskable"}]}'>
+
+    <!-- Icon for iOS Add to Home Screen -->
+    <link rel="apple-touch-icon" href='data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 180"><rect width="180" height="180" rx="40" fill="%230f3d1c"/><path d="M90 34 L105 68 L141 72 L114 96 L122 132 L90 115 L58 132 L66 96 L39 72 L75 68 Z" fill="%23d4af37"/><circle cx="90" cy="90" r="17" fill="none" stroke="%23d4af37" stroke-width="3"/></svg>'>
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href='data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="32" height="32" rx="7" fill="%230f3d1c"/><path d="M16 6 L19 13 L26 14 L21 19 L22 26 L16 22 L10 26 L11 19 L6 14 L13 13 Z" fill="%23d4af37"/></svg>'>
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,700;0,9..144,800;1,9..144,500&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Amiri:wght@400;700&display=swap" rel="stylesheet">
@@ -24,9 +42,10 @@
             --line: #e5e7eb;
         }
 
-* { box-sizing: border-box; }
+        * { box-sizing: border-box; }
+        html { -webkit-tap-highlight-color: transparent; }
 
-body {
+        body {
             font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
             background:
                 radial-gradient(ellipse at top left, rgba(212,175,55,0.08), transparent 50%),
@@ -35,12 +54,13 @@ body {
             background-attachment: fixed;
             margin: 0;
             padding: 24px 16px;
+            padding-top: max(24px, env(safe-area-inset-top));
+            padding-bottom: max(24px, env(safe-area-inset-bottom));
             min-height: 100vh;
             color: var(--ink);
             line-height: 1.5;
         }
 
-/* Subtle geometric pattern overlay */
         body::before {
             content: '';
             position: fixed;
@@ -52,25 +72,18 @@ body {
             z-index: 0;
         }
 
-.wrap {
-            max-width: 640px;
-            margin: 0 auto;
-            position: relative;
-            z-index: 1;
-        }
+        .wrap { max-width: 640px; margin: 0 auto; position: relative; z-index: 1; }
 
-.card {
+        .card {
             background: var(--cream);
             border-radius: 20px;
             padding: 28px 24px;
-            box-shadow:
-                0 20px 50px rgba(0,0,0,0.4),
-                0 0 0 1px rgba(212,175,55,0.2);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.4), 0 0 0 1px rgba(212,175,55,0.2);
             position: relative;
             overflow: hidden;
         }
 
-.card::before {
+        .card::before {
             content: '';
             position: absolute;
             top: 0; left: 0; right: 0;
@@ -78,14 +91,14 @@ body {
             background: linear-gradient(90deg, var(--gold), var(--gold-soft), var(--gold));
         }
 
-.masthead {
+        .masthead {
             text-align: center;
             margin-bottom: 24px;
             padding-bottom: 20px;
             border-bottom: 1px dashed rgba(15,61,28,0.2);
         }
 
-.masthead .kicker {
+        .masthead .kicker {
             font-size: 10px;
             letter-spacing: 3px;
             color: var(--gold);
@@ -94,7 +107,7 @@ body {
             margin-bottom: 6px;
         }
 
-.masthead h1 {
+        .masthead h1 {
             font-family: 'Fraunces', Georgia, serif;
             font-weight: 800;
             font-size: 24px;
@@ -104,14 +117,14 @@ body {
             line-height: 1.15;
         }
 
-.masthead .sub {
+        .masthead .sub {
             font-size: 12px;
             color: var(--muted);
             margin-top: 4px;
             font-style: italic;
         }
 
-.sec {
+        .sec {
             background: #fff;
             padding: 18px;
             border-radius: 14px;
@@ -121,11 +134,9 @@ body {
             transition: border-color 0.2s;
         }
 
-.sec:focus-within {
-            border-left-color: var(--gold);
-        }
+        .sec:focus-within { border-left-color: var(--gold); }
 
-.sec-t {
+        .sec-t {
             font-family: 'Fraunces', Georgia, serif;
             font-weight: 700;
             font-size: 14px;
@@ -136,7 +147,7 @@ body {
             gap: 8px;
         }
 
-.sec-t::before {
+        .sec-t::before {
             content: '';
             width: 6px;
             height: 6px;
@@ -144,7 +155,7 @@ body {
             border-radius: 50%;
         }
 
-label {
+        label {
             font-size: 11px;
             font-weight: 700;
             color: var(--muted);
@@ -154,7 +165,7 @@ label {
             margin-bottom: 4px;
         }
 
-input, select, textarea {
+        input, select, textarea {
             width: 100%;
             padding: 11px 12px;
             border: 1.5px solid var(--line);
@@ -167,29 +178,23 @@ input, select, textarea {
             text-transform: uppercase;
         }
 
-input:focus, select:focus, textarea:focus {
+        input:focus, select:focus, textarea:focus {
             outline: none;
             border-color: var(--s);
             box-shadow: 0 0 0 3px rgba(27,94,32,0.12);
         }
 
-input.err, select.err, textarea.err {
+        input.err, select.err, textarea.err {
             border-color: var(--err);
             box-shadow: 0 0 0 3px rgba(197,48,48,0.12);
         }
 
-input[type="date"], input[type="time"], input[type="tel"] {
-            text-transform: none;
-        }
+        input[type="date"], input[type="time"], input[type="tel"] { text-transform: none; }
+        textarea { resize: vertical; min-height: 60px; }
 
-textarea {
-            resize: vertical;
-            min-height: 60px;
-        }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 
-.grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-
-.row {
+        .row {
             display: grid;
             grid-template-columns: 28px 110px 1fr;
             gap: 10px;
@@ -197,14 +202,14 @@ textarea {
             margin-top: 10px;
         }
 
-.row input[type="checkbox"] {
+        .row input[type="checkbox"] {
             width: 20px;
             height: 20px;
             cursor: pointer;
             accent-color: var(--s);
         }
 
-.h-txt {
+        .h-txt {
             font-size: 10px;
             color: var(--muted);
             margin: 4px 0 10px 38px;
@@ -213,7 +218,7 @@ textarea {
             letter-spacing: 0.8px;
         }
 
-.m-inp {
+        .m-inp {
             display: none;
             background: #fffbeb;
             border-color: #fbbf24;
@@ -221,7 +226,15 @@ textarea {
             width: calc(100% - 38px);
         }
 
-.err-msg {
+        /* Tahlil "lain-lain" manual box — full width (no indent, since not part of jadual row) */
+        .m-inp-full {
+            display: none;
+            background: #fffbeb;
+            border-color: #fbbf24;
+            margin-top: 10px;
+        }
+
+        .err-msg {
             color: var(--err);
             font-size: 11px;
             margin-top: 4px;
@@ -229,9 +242,9 @@ textarea {
             display: none;
         }
 
-.err-msg.show { display: block; }
+        .err-msg.show { display: block; }
 
-.warn-msg {
+        .warn-msg {
             background: #fffbeb;
             border: 1px solid #fbbf24;
             color: #92400e;
@@ -243,9 +256,8 @@ textarea {
             display: none;
         }
 
-.warn-msg.show { display: block; }
+        .warn-msg.show { display: block; }
 
-/* Preview */
         .preview-wrap {
             margin-top: 18px;
             background: #0a4d2e;
@@ -254,7 +266,7 @@ textarea {
             position: relative;
         }
 
-.preview-wrap::before {
+        .preview-wrap::before {
             content: 'PRATONTON WHATSAPP';
             position: absolute;
             top: -9px;
@@ -268,7 +280,7 @@ textarea {
             letter-spacing: 1.2px;
         }
 
-.preview-box {
+        .preview-box {
             background: #dcf8c6;
             border-radius: 12px;
             padding: 14px 16px;
@@ -282,7 +294,7 @@ textarea {
             word-wrap: break-word;
         }
 
-.preview-box::after {
+        .preview-box::after {
             content: '';
             position: absolute;
             right: -8px;
@@ -292,7 +304,7 @@ textarea {
             border-top: 8px solid transparent;
         }
 
-.preview-box .ar {
+        .preview-box .ar {
             font-family: 'Amiri', serif;
             font-size: 17px;
             direction: rtl;
@@ -302,7 +314,7 @@ textarea {
             line-height: 1.8;
         }
 
-.meta-bar {
+        .meta-bar {
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -313,9 +325,8 @@ textarea {
             letter-spacing: 0.5px;
         }
 
-.char-count { font-variant-numeric: tabular-nums; }
+        .char-count { font-variant-numeric: tabular-nums; }
 
-/* Buttons */
         .btn {
             width: 100%;
             padding: 15px 18px;
@@ -333,11 +344,11 @@ textarea {
             gap: 8px;
         }
 
-.btn:hover { filter: brightness(1.08); transform: translateY(-1px); }
+        .btn:hover { filter: brightness(1.08); transform: translateY(-1px); }
         .btn:active { transform: translateY(0); }
         .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
 
-.btn-primary {
+        .btn-primary {
             background: linear-gradient(135deg, #25D366, #128C7E);
             color: #fff;
             box-shadow: 0 4px 14px rgba(18,140,126,0.4);
@@ -346,17 +357,16 @@ textarea {
             font-size: 15px;
         }
 
-.btn-group {
+        .btn-group {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 10px;
             margin-top: 10px;
         }
 
-.btn-copy { background: #1f2937; color: #fff; }
+        .btn-copy { background: #1f2937; color: #fff; }
         .btn-reset { background: #fff; color: var(--err); border: 1.5px solid var(--err); }
 
-/* Toast */
         .toast-wrap {
             position: fixed;
             bottom: 24px;
@@ -369,7 +379,7 @@ textarea {
             pointer-events: none;
         }
 
-.toast {
+        .toast {
             background: var(--ink);
             color: #fff;
             padding: 12px 20px;
@@ -383,21 +393,18 @@ textarea {
             text-align: center;
         }
 
-.toast.ok { background: var(--ok); }
+        .toast.ok { background: var(--ok); }
         .toast.err { background: var(--err); }
         .toast.warn { background: var(--warn); }
 
-@keyframes slideUp {
+        @keyframes slideUp {
             from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
-.toast.out { animation: slideDown 0.3s ease forwards; }
-        @keyframes slideDown {
-            to { opacity: 0; transform: translateY(20px); }
-        }
+        .toast.out { animation: slideDown 0.3s ease forwards; }
+        @keyframes slideDown { to { opacity: 0; transform: translateY(20px); } }
 
-/* Modal (for confirm) */
         .modal-bg {
             position: fixed; inset: 0;
             background: rgba(0,0,0,0.5);
@@ -410,7 +417,7 @@ textarea {
         }
         .modal-bg.show { display: flex; }
 
-.modal {
+        .modal {
             background: #fff;
             border-radius: 16px;
             padding: 24px;
@@ -419,12 +426,13 @@ textarea {
             text-align: center;
             animation: popIn 0.2s ease;
         }
+
         @keyframes popIn {
             from { opacity: 0; transform: scale(0.9); }
             to { opacity: 1; transform: scale(1); }
         }
 
-.modal h3 {
+        .modal h3 {
             font-family: 'Fraunces', serif;
             color: var(--err);
             margin: 0 0 8px;
@@ -435,7 +443,6 @@ textarea {
         .modal .btn-cancel { background: var(--line); color: var(--ink); }
         .modal .btn-confirm { background: var(--err); color: #fff; }
 
-/* Footer */
         .footer {
             margin-top: 24px;
             text-align: center;
@@ -447,7 +454,7 @@ textarea {
         }
         .footer span { color: var(--gold); font-weight: 700; }
 
-.save-ind {
+        .save-ind {
             position: absolute;
             top: 20px;
             right: 20px;
@@ -461,41 +468,96 @@ textarea {
         }
         .save-ind.show { opacity: 1; }
 
-@media (max-width: 480px) {
+        /* Install prompt banner */
+        .install-banner {
+            display: none;
+            background: linear-gradient(135deg, var(--p), var(--s));
+            color: #fff;
+            padding: 14px 16px;
+            border-radius: 14px;
+            margin-bottom: 14px;
+            font-size: 13px;
+            align-items: center;
+            gap: 12px;
+            animation: slideUp 0.4s ease;
+            box-shadow: 0 4px 14px rgba(15,61,28,0.3);
+        }
+        .install-banner.show { display: flex; }
+        .install-banner .ib-icon {
+            font-size: 22px;
+            background: rgba(212,175,55,0.2);
+            width: 40px; height: 40px;
+            display: flex; align-items: center; justify-content: center;
+            border-radius: 10px;
+            flex-shrink: 0;
+        }
+        .install-banner .ib-text { flex: 1; line-height: 1.3; }
+        .install-banner .ib-text b { color: var(--gold); }
+        .install-banner button {
+            background: var(--gold);
+            color: var(--p);
+            border: none;
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 12px;
+            cursor: pointer;
+            font-family: inherit;
+            flex-shrink: 0;
+        }
+        .install-banner .ib-close {
+            background: transparent;
+            color: rgba(255,255,255,0.7);
+            padding: 4px 8px;
+            font-size: 18px;
+        }
+
+        @media (max-width: 480px) {
             .grid { grid-template-columns: 1fr; }
             .row { grid-template-columns: 24px 95px 1fr; gap: 8px; }
             .masthead h1 { font-size: 20px; }
             .card { padding: 22px 18px; }
+        }
+
+        @media (display-mode: standalone) {
+            .install-banner { display: none !important; }
         }
     </style>
 </head>
 <body onload="init()">
 
 <div class="wrap">
+
+    <div class="install-banner" id="installBanner">
+        <div class="ib-icon">📲</div>
+        <div class="ib-text">Pasang <b>e-Takziah</b> sebagai app di skrin utama</div>
+        <button onclick="pasangApp()">Pasang</button>
+        <button class="ib-close" onclick="tutupBanner()" aria-label="Tutup">×</button>
+    </div>
+
     <div class="card">
         <div class="save-ind" id="saveInd">✓ Disimpan</div>
 
-<div class="masthead">
+        <div class="masthead">
             <div class="kicker">Biro Khairat MKSLB</div>
             <h1>Penjanaan Hebahan Kematian</h1>
             <div class="sub">Masjid Kampung Sungai Lang Baru</div>
         </div>
 
-<!-- ARWAH -->
         <div class="sec">
             <div class="sec-t">Maklumat Arwah</div>
 
-<label for="jnt">Jantina</label>
+            <label for="jnt">Jantina</label>
             <select id="jnt" onchange="update()">
                 <option value="l">LELAKI</option>
                 <option value="p">WANITA</option>
             </select>
 
-<label for="nm" style="margin-top:12px">Nama Arwah *</label>
+            <label for="nm" style="margin-top:12px">Nama Arwah *</label>
             <input type="text" id="nm" placeholder="NAMA PENUH ARWAH" oninput="update()" required>
             <div class="err-msg" id="nm-err">Sila isi nama arwah</div>
 
-<div class="grid" style="margin-top:12px">
+            <div class="grid" style="margin-top:12px">
                 <div>
                     <label for="umr">Umur (tahun) *</label>
                     <input type="number" id="umr" placeholder="75" min="0" max="130" oninput="update()">
@@ -508,22 +570,21 @@ textarea {
                 </div>
             </div>
 
-<label for="alm" style="margin-top:12px">Alamat Rumah</label>
+            <label for="alm" style="margin-top:12px">Alamat Rumah</label>
             <textarea id="alm" rows="2" placeholder="ALAMAT LENGKAP ARWAH" oninput="update()"></textarea>
         </div>
 
-<!-- JADUAL -->
         <div class="sec">
             <div class="sec-t">Jadual Pengurusan Jenazah</div>
 
-<label for="trkP">Tarikh Pengurusan *</label>
+            <label for="trkP">Tarikh Pengurusan *</label>
             <input type="date" id="trkP" onchange="update()" style="background:#f0fdf4; font-weight:700; color:var(--p)">
             <div class="err-msg" id="trkP-err">Sila pilih tarikh pengurusan</div>
             <div class="warn-msg" id="date-warn">⚠️ Tarikh pengurusan sebelum tarikh kematian</div>
 
-<div id="jadual-container" style="margin-top:14px"></div>
+            <div id="jadual-container" style="margin-top:14px"></div>
 
-<div class="row">
+            <div class="row">
                 <input type="checkbox" id="c5" checked onchange="update()" aria-label="Pengebumian">
                 <input type="time" id="m5" value="17:00" onchange="update()">
                 <select id="l5" onchange="tgl(5); update()">
@@ -534,17 +595,23 @@ textarea {
             <input type="text" id="o5" class="m-inp" placeholder="NAMA TANAH PERKUBURAN" oninput="update()">
             <p class="h-txt">🪦 Pengebumian</p>
 
-<div class="warn-msg" id="time-warn">⚠️ Urutan masa tidak mengikut turutan</div>
+            <div class="warn-msg" id="time-warn">⚠️ Urutan masa tidak mengikut turutan</div>
         </div>
 
-<!-- TAHLIL & WARIS -->
         <div class="sec">
             <div class="sec-t">Tahlil & Waris</div>
 
-<label for="thl">Tahlil (Malam 1–3)</label>
-            <input type="text" id="thl" placeholder="SELEPAS MAGHRIB DI RUMAH ARWAH" oninput="update()">
+            <label for="thl">Tahlil (Malam 1–3)</label>
+            <select id="thl" onchange="tglTahlil(); update()">
+                <option value="">— PILIH (JIKA ADA) —</option>
+                <option value="SELEPAS MAGHRIB DI MASJID">SELEPAS MAGHRIB DI MASJID</option>
+                <option value="SELEPAS MAGHRIB DI RUMAH ARWAH">SELEPAS MAGHRIB DI RUMAH ARWAH</option>
+                <option value="AKAN DIMAKLUMKAN DARI SEMASA KE SEMASA">AKAN DIMAKLUMKAN DARI SEMASA KE SEMASA</option>
+                <option value="EX">LAIN-LAIN (NYATAKAN)</option>
+            </select>
+            <input type="text" id="thlEx" class="m-inp-full" placeholder="NYATAKAN BUTIRAN TAHLIL" oninput="update()">
 
-<div class="grid" style="margin-top:12px">
+            <div class="grid" style="margin-top:12px">
                 <div>
                     <label for="ws">No. Tel Waris</label>
                     <input type="tel" id="ws" placeholder="019-234 5678" oninput="update()">
@@ -556,7 +623,6 @@ textarea {
             </div>
         </div>
 
-<!-- PREVIEW -->
         <div class="preview-wrap">
             <div class="preview-box" id="preview"></div>
             <div class="meta-bar">
@@ -565,25 +631,23 @@ textarea {
             </div>
         </div>
 
-<button class="btn btn-primary" onclick="hantar()">
+        <button class="btn btn-primary" onclick="hantar()">
             <span>🚀</span><span>JANA & HANTAR KE WHATSAPP</span>
         </button>
 
-<div class="btn-group">
+        <div class="btn-group">
             <button class="btn btn-copy" onclick="salinTeks()">📋 Salin Teks</button>
             <button class="btn btn-reset" onclick="konfirmaReset()">🗑️ Reset</button>
         </div>
     </div>
 
-<div class="footer">
+    <div class="footer">
         Developed by <span>NISKALA PAWAKA</span> © 2026
     </div>
 </div>
 
-<!-- Toast container -->
 <div class="toast-wrap" id="toastWrap"></div>
 
-<!-- Confirm modal -->
 <div class="modal-bg" id="modalBg">
     <div class="modal">
         <h3>Padam Semua Data?</h3>
@@ -598,12 +662,12 @@ textarea {
 <script>
     const STORAGE_KEY = 'mkslb_etakziah_v3';
     const KUBUR_LINK = "https://maps.app.goo.gl/7XCsheUpjUXKaXXZ9";
+    const BANNER_KEY = 'mkslb_install_dismissed';
 
     const gV = id => document.getElementById(id)?.value || '';
     const gC = id => document.getElementById(id)?.checked || false;
     const $ = id => document.getElementById(id);
 
-    // --- Formatters ---
     const fmtPh = num => {
         if (!num) return '';
         let n = num.replace(/\D/g, '');
@@ -630,7 +694,6 @@ textarea {
         return `${h}:${m} ${suffix}`;
     };
 
-    // --- Jadual builder ---
     const LABELS = [
         { l: "Ambil Jenazah", e: "🚐" },
         { l: "Mandi & Kapan", e: "🚿" },
@@ -663,12 +726,25 @@ textarea {
         if (el) el.style.display = gV('l' + id) === 'EX' ? 'block' : 'none';
     }
 
+    // Tahlil dropdown: papar kotak taip bila "Lain-lain"
+    function tglTahlil() {
+        const el = $('thlEx');
+        if (el) el.style.display = gV('thl') === 'EX' ? 'block' : 'none';
+    }
+
+    // Nilai tahlil sebenar (dropdown atau kotak taip)
+    function nilaiTahlil() {
+        const v = gV('thl');
+        if (!v) return '';                 // kosong → tak papar tahlil
+        if (v === 'EX') return gV('thlEx').toUpperCase().trim();
+        return v;
+    }
+
     function syncDate(val) {
         if (!$('trkP').value) $('trkP').value = val;
         update();
     }
 
-    // --- Toast ---
     function toast(msg, type = '') {
         const el = document.createElement('div');
         el.className = 'toast ' + type;
@@ -680,7 +756,6 @@ textarea {
         }, 2200);
     }
 
-    // --- Validation ---
     function validate(silent = false) {
         const errors = [];
         const fields = {
@@ -707,7 +782,6 @@ textarea {
             }
         });
 
-        // Date logic warning
         const dateWarn = $('date-warn');
         if (gV('trk') && gV('trkP') && gV('trkP') < gV('trk')) {
             dateWarn.classList.add('show');
@@ -715,7 +789,6 @@ textarea {
             dateWarn.classList.remove('show');
         }
 
-        // Time sequence warning
         const times = [1,2,3,4,5].filter(i => gC('c'+i)).map(i => gV('m'+i));
         const sorted = [...times].sort();
         const timeWarn = $('time-warn');
@@ -728,7 +801,6 @@ textarea {
         return errors;
     }
 
-    // --- Message generator ---
     function janaMesej() {
         const isLelaki = gV('jnt') === 'l';
         const doa = isLelaki
@@ -768,8 +840,9 @@ textarea {
             msg += `\n\n📍 *Lokasi Perkuburan:*\n${KUBUR_LINK}`;
         }
 
-        if (gV('thl').trim()) {
-            msg += `\n\n🕯️ *TAHLIL MALAM 1–3:*\n${gV('thl').toUpperCase().trim()}`;
+        const tahlil = nilaiTahlil();
+        if (tahlil) {
+            msg += `\n\n🕯️ *TAHLIL MALAM 1–3:*\n${tahlil}`;
         }
 
         msg += `\n\n━━━━━━━━━━━━━━━━\n`;
@@ -788,10 +861,8 @@ textarea {
         return msg;
     }
 
-    // --- Preview with Arabic styling ---
     function renderPreview() {
         const msg = janaMesej();
-        // Style Arabic text in preview
         const arabicRegex = /([\u0600-\u06FF\s،.؟]+)/g;
         const styled = msg.replace(arabicRegex, m => {
             if (m.trim().length > 5) return `<span class="ar">${m}</span>`;
@@ -801,7 +872,6 @@ textarea {
         $('charCount').textContent = `${msg.length} aksara`;
     }
 
-    // --- Persistence ---
     let saveTimer;
     function simpan() {
         const data = {};
@@ -814,7 +884,7 @@ textarea {
             ind.classList.add('show');
             clearTimeout(saveTimer);
             saveTimer = setTimeout(() => ind.classList.remove('show'), 1500);
-        } catch (e) { /* storage full, ignore */ }
+        } catch (e) {}
     }
 
     function muatData() {
@@ -828,6 +898,7 @@ textarea {
                 else el.value = data[id];
                 if (id.startsWith('l') && id.length === 2) tgl(id.substring(1));
             });
+            tglTahlil();
         } catch (e) { console.warn('Load failed:', e); }
     }
 
@@ -837,12 +908,10 @@ textarea {
         simpan();
     }
 
-    // --- Actions ---
     function hantar() {
         const errs = validate(false);
         if (errs.length) {
             toast('Sila lengkapkan ruangan wajib (*)', 'err');
-            // Scroll to first error
             const firstErr = document.querySelector('.err-msg.show');
             if (firstErr) firstErr.scrollIntoView({ behavior: 'smooth', block: 'center' });
             return;
@@ -861,7 +930,6 @@ textarea {
             await navigator.clipboard.writeText(janaMesej());
             toast('✓ Teks hebahan disalin!', 'ok');
         } catch (e) {
-            // Fallback
             const ta = document.createElement('textarea');
             ta.value = janaMesej();
             document.body.appendChild(ta);
@@ -882,15 +950,56 @@ textarea {
         setTimeout(() => location.reload(), 500);
     }
 
-    // Close modal on backdrop click
     document.addEventListener('click', e => {
         if (e.target.id === 'modalBg') tutupModal();
     });
 
-    // --- Init ---
+    // ===== PWA INSTALL =====
+    let deferredPrompt = null;
+
+    window.addEventListener('beforeinstallprompt', e => {
+        e.preventDefault();
+        deferredPrompt = e;
+        if (!localStorage.getItem(BANNER_KEY)) {
+            $('installBanner').classList.add('show');
+        }
+    });
+
+    async function pasangApp() {
+        if (!deferredPrompt) {
+            toast('Tekan menu pelayar → "Add to Home Screen"', 'ok');
+            return;
+        }
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        if (outcome === 'accepted') {
+            toast('✓ Sedang dipasang...', 'ok');
+        }
+        deferredPrompt = null;
+        $('installBanner').classList.remove('show');
+    }
+
+    function tutupBanner() {
+        $('installBanner').classList.remove('show');
+        localStorage.setItem(BANNER_KEY, '1');
+    }
+
+    window.addEventListener('appinstalled', () => {
+        $('installBanner').classList.remove('show');
+        toast('✓ e-Takziah berjaya dipasang!', 'ok');
+    });
+
+    // iOS Safari fallback
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+    if (isIOS && !isStandalone && !localStorage.getItem(BANNER_KEY)) {
+        setTimeout(() => $('installBanner').classList.add('show'), 1000);
+    }
+
     function init() {
         buildJadual();
         muatData();
+        tglTahlil();
         update();
     }
 </script>
