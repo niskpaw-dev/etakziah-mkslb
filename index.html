@@ -454,6 +454,48 @@
         }
         .footer span { color: var(--gold); font-weight: 700; }
 
+        /* Kod Admin — penerbitan ke laman web masjid */
+        .admin-row {
+            margin-top: 14px;
+            display: flex;
+            justify-content: center;
+        }
+        .admin-link {
+            background: none;
+            border: none;
+            font-family: inherit;
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--muted);
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 10px;
+            border-radius: 20px;
+            letter-spacing: 0.3px;
+        }
+        .admin-link:hover { background: rgba(15,61,28,0.06); }
+        .admin-dot {
+            width: 7px; height: 7px; border-radius: 50%;
+            background: #cbd5e1;
+        }
+        .admin-dot.on { background: #22c55e; box-shadow: 0 0 0 3px rgba(34,197,94,0.18); }
+        .modal h3.ok { color: var(--p); }
+        .modal input.kod {
+            text-transform: none;
+            font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+        .modal .hint { font-size: 11px; color: var(--muted); margin: 0 0 16px; text-align: left; }
+        .modal .btn-save { background: var(--p); color: #fff; }
+        .modal .btn-link {
+            background: none; border: none; color: var(--err);
+            font-size: 12px; font-weight: 600; margin-top: 12px; cursor: pointer;
+            font-family: inherit; width: auto; padding: 4px; display: none;
+        }
+
         .save-ind {
             position: absolute;
             top: 20px;
@@ -639,6 +681,13 @@
             <button class="btn btn-copy" onclick="salinTeks()">📋 Salin Teks</button>
             <button class="btn btn-reset" onclick="konfirmaReset()">🗑️ Reset</button>
         </div>
+
+        <div class="admin-row">
+            <button class="admin-link" onclick="bukaAdmin()" aria-label="Tetapan Kod Admin">
+                <span class="admin-dot" id="adminDot"></span>
+                <span id="adminLabel">Laman web: tidak aktif</span>
+            </button>
+        </div>
     </div>
 
     <div class="footer">
@@ -659,10 +708,29 @@
     </div>
 </div>
 
+<div class="modal-bg" id="adminBg">
+    <div class="modal">
+        <h3 class="ok">🔒 Kod Admin</h3>
+        <p>Isi sekali sahaja pada telefon admin. Selepas itu, butang hantar juga akan menerbitkan hebahan ke laman web masjid.</p>
+        <input type="password" id="kodAdmin" class="kod" data-nosave="1" placeholder="Tampal Kod Admin" autocomplete="off" autocapitalize="off" spellcheck="false">
+        <p class="hint">Tanpa kod, butang hantar hanya membuka WhatsApp.</p>
+        <div class="btn-group">
+            <button class="btn btn-cancel" onclick="tutupAdmin()">Batal</button>
+            <button class="btn btn-save" onclick="simpanAdmin()">Simpan</button>
+        </div>
+        <button class="btn-link" id="btnBuangKod" onclick="buangAdmin()">Buang kod dari telefon ini</button>
+    </div>
+</div>
+
 <script>
     const STORAGE_KEY = 'mkslb_etakziah_v3';
     const KUBUR_LINK = "https://maps.app.goo.gl/7XCsheUpjUXKaXXZ9";
     const BANNER_KEY = 'mkslb_install_dismissed';
+
+    // Penerbitan ke laman web masjid (GAS → Sheet "Hebahan")
+    const GAS_URL = 'https://script.google.com/macros/s/AKfycbzo11cX9IMulAFMP2k4vsOpz6T9KnTRf_AiH5CrZ8o9fSILn_Sdo0oMF622CEv7bSj_/exec';
+    const ADMIN_KEY = 'mkslb_kod_admin';      // token, hanya di telefon admin
+    const DRAF_KEY = 'mkslb_draf_terbit';     // { id, nama, trk } hebahan terakhir diterbit
 
     const gV = id => document.getElementById(id)?.value || '';
     const gC = id => document.getElementById(id)?.checked || false;
@@ -893,7 +961,7 @@
     function simpan() {
         const data = {};
         document.querySelectorAll('input, select, textarea').forEach(el => {
-            if (el.id) data[el.id] = el.type === 'checkbox' ? el.checked : el.value;
+            if (el.id && !el.dataset.nosave) data[el.id] = el.type === 'checkbox' ? el.checked : el.value;
         });
         try {
             localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
@@ -933,8 +1001,130 @@
             if (firstErr) firstErr.scrollIntoView({ behavior: 'smooth', block: 'center' });
             return;
         }
-        window.open(`https://wa.me/?text=${encodeURIComponent(janaMesej())}`, '_blank');
-        toast('Membuka WhatsApp...', 'ok');
+        const teks = janaMesej();
+        // WhatsApp dibuka dahulu, terus dalam klik (elak sekatan pop-up)
+        window.open(`https://wa.me/?text=${encodeURIComponent(teks)}`, '_blank');
+
+        const kod = bacaLS(ADMIN_KEY);
+        if (!kod) { toast('Membuka WhatsApp...', 'ok'); return; }
+        terbitKeWeb(kod, teks);
+    }
+
+    // ===== PENERBITAN KE LAMAN WEB =====
+    function bacaLS(k) { try { return localStorage.getItem(k) || ''; } catch (e) { return ''; } }
+    function tulisLS(k, v) { try { v === null ? localStorage.removeItem(k) : localStorage.setItem(k, v); } catch (e) {} }
+
+    function idBaru() {
+        const r = (crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2) + Date.now().toString(36));
+        return 'tkz-' + r.replace(/-/g, '').slice(0, 20);
+    }
+
+    // Jarak edit ringkas (Levenshtein) untuk kenal pasti pembetulan salah taip
+    function jarak(a, b) {
+        const m = a.length, n = b.length;
+        let prev = Array.from({ length: n + 1 }, (_, j) => j);
+        for (let i = 1; i <= m; i++) {
+            const cur = [i];
+            for (let j = 1; j <= n; j++) {
+                cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+            }
+            prev = cur;
+        }
+        return prev[n];
+    }
+
+    // Guna ID yang sama jika ini pembetulan hebahan terakhir (tarikh meninggal sama
+    // dan nama hampir sama). Jika arwah lain, cipta ID baru supaya tidak tertindih.
+    function pilihId(nama, trk) {
+        let d = null;
+        try { d = JSON.parse(bacaLS(DRAF_KEY) || 'null'); } catch (e) {}
+        if (d && d.id && d.trk === trk) {
+            const had = Math.max(3, Math.floor(Math.max(nama.length, d.nama.length) * 0.3));
+            if (jarak(nama, d.nama) <= had) return d.id;
+        }
+        return idBaru();
+    }
+
+    function binaHebahan(teks) {
+        const akt = ["AMBIL JENAZAH", "MANDI & KAPAN", "TAHLIL ARWAH", "SOLAT JENAZAH", "PENGEBUMIAN"];
+        const jadual = [];
+        for (let i = 1; i <= 5; i++) {
+            if (!gC('c' + i)) continue;
+            const lok = (gV('l' + i) === 'EX') ? gV('o' + i) : gV('l' + i);
+            jadual.push({ aktiviti: akt[i - 1], masa: gV('m' + i), lokasi: (lok || '').toUpperCase().trim() });
+        }
+        return {
+            jantina: gV('jnt'),
+            nama: gV('nm').toUpperCase().trim(),
+            umur: gV('umr'),
+            tarikhMeninggal: gV('trk'),
+            tarikhUrus: gV('trkP'),
+            alamat: gV('alm').toUpperCase().trim(),
+            jadual: jadual,
+            tahlil: nilaiTahlil(),
+            telWaris: fmtPh(gV('ws').trim()),
+            hubungan: gV('hbg').toUpperCase().trim(),
+            teks: teks
+        };
+    }
+
+    async function terbitKeWeb(kod, teks) {
+        const h = binaHebahan(teks);
+        const id = pilihId(h.nama, h.tarikhMeninggal);
+        toast('Membuka WhatsApp & menerbit ke laman web...', 'ok');
+        try {
+            // text/plain: elak CORS preflight (GAS tidak sokong OPTIONS)
+            const res = await fetch(GAS_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify({ token: kod, id: id, hebahan: h }),
+                redirect: 'follow'
+            });
+            const out = await res.json();
+            if (out.ok) {
+                tulisLS(DRAF_KEY, JSON.stringify({ id: out.id, nama: h.nama, trk: h.tarikhMeninggal }));
+                toast(out.tindakan === 'kemaskini'
+                    ? '✓ Hebahan di laman web dikemas kini'
+                    : '✓ Dihantar ke WhatsApp & laman web masjid', 'ok');
+            } else if (out.ralat === 'Tidak dibenarkan') {
+                toast('Kod Admin tidak sah. Hebahan tidak diterbit ke laman web.', 'err');
+            } else {
+                toast('Gagal terbit ke laman web: ' + (out.ralat || 'ralat tidak diketahui'), 'err');
+            }
+        } catch (e) {
+            toast('Tiada sambungan. Hebahan belum diterbit ke laman web, tekan hantar semula.', 'warn');
+        }
+    }
+
+    function kemaskiniAdminUI() {
+        const ada = !!bacaLS(ADMIN_KEY);
+        $('adminDot').classList.toggle('on', ada);
+        $('adminLabel').textContent = ada ? 'Laman web: aktif' : 'Laman web: tidak aktif';
+        $('btnBuangKod').style.display = ada ? 'inline-block' : 'none';
+    }
+
+    function bukaAdmin() {
+        $('kodAdmin').value = '';
+        kemaskiniAdminUI();
+        $('adminBg').classList.add('show');
+        setTimeout(() => $('kodAdmin').focus(), 50);
+    }
+    function tutupAdmin() { $('adminBg').classList.remove('show'); }
+
+    function simpanAdmin() {
+        const k = $('kodAdmin').value.trim();
+        if (k.length < 16) { toast('Kod Admin terlalu pendek. Tampal kod penuh.', 'err'); return; }
+        tulisLS(ADMIN_KEY, k);
+        tutupAdmin();
+        kemaskiniAdminUI();
+        toast('✓ Kod Admin disimpan pada telefon ini', 'ok');
+    }
+
+    function buangAdmin() {
+        tulisLS(ADMIN_KEY, null);
+        tutupAdmin();
+        kemaskiniAdminUI();
+        toast('Kod Admin dibuang dari telefon ini', 'warn');
     }
 
     async function salinTeks() {
@@ -962,6 +1152,7 @@
 
     function padamSemua() {
         localStorage.removeItem(STORAGE_KEY);
+        tulisLS(DRAF_KEY, null);   // hebahan seterusnya dapat ID baru; Kod Admin dikekalkan
         tutupModal();
         toast('Data dipadam', 'warn');
         setTimeout(() => location.reload(), 500);
@@ -969,6 +1160,7 @@
 
     document.addEventListener('click', e => {
         if (e.target.id === 'modalBg') tutupModal();
+        if (e.target.id === 'adminBg') tutupAdmin();
     });
 
     // ===== PWA INSTALL =====
@@ -1018,6 +1210,7 @@
         muatData();
         tglTahlil();
         update();
+        kemaskiniAdminUI();
     }
 </script>
 
