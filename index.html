@@ -668,6 +668,18 @@
     const gC = id => document.getElementById(id)?.checked || false;
     const $ = id => document.getElementById(id);
 
+    // Unicode sans-serif BOLD — renders bold on WhatsApp, Telegram & Facebook
+    // (actual bold glyphs, not markdown). Only A-Z, a-z, 0-9 mapped;
+    // spaces, punctuation, "·", emoji & Arabic are left untouched.
+    const boldU = str => str.replace(/[A-Za-z0-9]/g, c => {
+        const code = c.codePointAt(0);
+        let base;
+        if (code >= 48 && code <= 57) base = 0x1D7EC + (code - 48);        // 0-9
+        else if (code >= 65 && code <= 90) base = 0x1D5D4 + (code - 65);   // A-Z
+        else base = 0x1D5EE + (code - 97);                                 // a-z
+        return String.fromCodePoint(base);
+    });
+
     const fmtPh = num => {
         if (!num) return '';
         let n = num.replace(/\D/g, '');
@@ -815,15 +827,16 @@
         const umur = gV('umr') || "0";
         const alamat = gV('alm').toUpperCase().trim() || "---";
 
+        // Dua benteng unicode-bold: tajuk + nama arwah
         let msg = `${salam}\n\n${basmalah}\n${doa}\n\n`;
-        msg += `*📢 MAKLUMAN KEMATIAN · MKSLB*\n`;
+        msg += `📢 ${boldU('MAKLUMAN KEMATIAN · MKSLB')}\n`;
         msg += `━━━━━━━━━━━━━━━━\n\n`;
-        msg += `👤 *${gelaran}:*\n${nama} (${umur} TAHUN)\n\n`;
-        msg += `🗓️ *TARIKH MENINGGAL:*\n${fmtD(gV('trk'))}\n\n`;
-        msg += `🏠 *ALAMAT:*\n${alamat}\n\n`;
+        msg += `👤 ${gelaran}:\n${boldU(nama)} (${umur} TAHUN)\n\n`;
+        msg += `🗓️ TARIKH MENINGGAL:\n${fmtD(gV('trk'))}\n\n`;
+        msg += `🏠 ALAMAT:\n${alamat}\n\n`;
 
         msg += `━━━━━━━━━━━━━━━━\n`;
-        msg += `*⏰ JADUAL PENGURUSAN JENAZAH*\n`;
+        msg += `⏰ JADUAL PENGURUSAN JENAZAH\n`;
         msg += `🗓️ ${fmtD(gV('trkP'))}\n━━━━━━━━━━━━━━━━\n`;
 
         const akt = ["AMBIL JENAZAH", "MANDI & KAPAN", "TAHLIL ARWAH", "SOLAT JENAZAH", "PENGEBUMIAN"];
@@ -832,30 +845,30 @@
         for (let i = 1; i <= 5; i++) {
             if (gC('c' + i)) {
                 const lok = (gV('l' + i) === 'EX') ? gV('o' + i) : gV('l' + i);
-                msg += `\n${emoji[i-1]} *${fmtT(gV('m'+i))}* · ${akt[i-1]}\n   ➜ ${(lok || "---").toUpperCase()}`;
+                msg += `\n${emoji[i-1]} ${fmtT(gV('m'+i))} · ${akt[i-1]}\n   ➜ ${(lok || "---").toUpperCase()}`;
             }
         }
 
         if (gC('c5') && gV('l5').includes("TAMAN FIRDAUS")) {
-            msg += `\n\n📍 *Lokasi Perkuburan:*\n${KUBUR_LINK}`;
+            msg += `\n\n📍 Lokasi Perkuburan:\n${KUBUR_LINK}`;
         }
 
         const tahlil = nilaiTahlil();
         if (tahlil) {
-            msg += `\n\n🕯️ *TAHLIL MALAM 1–3:*\n${tahlil}`;
+            msg += `\n\n🕯️ TAHLIL MALAM 1–3:\n${tahlil}`;
         }
 
         msg += `\n\n━━━━━━━━━━━━━━━━\n`;
-        msg += `📞 *HUBUNGI WARIS:*\n`;
+        msg += `📞 HUBUNGI WARIS:\n`;
         const phone = fmtPh(gV('ws'));
         const hbg = gV('hbg').toUpperCase().trim() || "WARIS";
         msg += phone ? `${phone} (${hbg})\n\n` : `---\n\n`;
 
-        msg += `*BIRO KHAIRAT MKSLB:*\n`;
+        msg += `BIRO KHAIRAT MKSLB:\n`;
         msg += `• 019-274 9335 (HJ HASHIM)\n`;
         msg += `• 010-280 2454 (HJ MAKSOM)\n\n`;
 
-        msg += `_Mohon sedekahkan Al-Fatihah buat Arwah..._\n\n`;
+        msg += `Mohon sedekahkan Al-Fatihah buat Arwah...\n\n`;
         msg += `#BiroKhairatMKSLB #eTakziah`;
 
         return msg;
@@ -869,7 +882,8 @@
             return m;
         });
         $('preview').innerHTML = styled;
-        $('charCount').textContent = `${msg.length} aksara`;
+        // Kira aksara ikut code-point (huruf bold = 1, bukan 2)
+        $('charCount').textContent = `${[...msg].length} aksara`;
     }
 
     let saveTimer;
