@@ -825,7 +825,7 @@
         const gelaran = isLelaki ? "ALLAHYARHAM" : "ALLAHYARHAMAH";
         const nama = gV('nm').toUpperCase().trim() || "---";
         const umur = gV('umr') || "0";
-        const alamat = gV('alm').toUpperCase().trim() || "---";
+        const alamat = gV('alm').toUpperCase().trim();
 
         // Dua benteng unicode-bold: tajuk + nama arwah
         let msg = `${salam}\n\n${basmalah}\n${doa}\n\n`;
@@ -833,7 +833,8 @@
         msg += `━━━━━━━━━━━━━━━━\n\n`;
         msg += `👤 ${gelaran}:\n${boldU(nama)} (${umur} TAHUN)\n\n`;
         msg += `🗓️ TARIKH MENINGGAL:\n${fmtD(gV('trk'))}\n\n`;
-        msg += `🏠 ALAMAT:\n${alamat}\n\n`;
+        // Alamat kosong → seksyen tak dipapar
+        if (alamat) msg += `🏠 ALAMAT:\n${alamat}\n\n`;
 
         msg += `━━━━━━━━━━━━━━━━\n`;
         msg += `⏰ JADUAL PENGURUSAN JENAZAH\n`;
@@ -859,10 +860,12 @@
         }
 
         msg += `\n\n━━━━━━━━━━━━━━━━\n`;
-        msg += `📞 HUBUNGI WARIS:\n`;
-        const phone = fmtPh(gV('ws'));
-        const hbg = gV('hbg').toUpperCase().trim() || "WARIS";
-        msg += phone ? `${phone} (${hbg})\n\n` : `---\n\n`;
+        // No. waris kosong → seksyen tak dipapar
+        const phone = fmtPh(gV('ws').trim());
+        if (phone) {
+            const hbg = gV('hbg').toUpperCase().trim() || "WARIS";
+            msg += `📞 HUBUNGI WARIS:\n${phone} (${hbg})\n\n`;
+        }
 
         msg += `BIRO KHAIRAT MKSLB:\n`;
         msg += `• 019-274 9335 (HJ HASHIM)\n`;
