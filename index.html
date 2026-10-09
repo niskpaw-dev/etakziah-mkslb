@@ -490,6 +490,38 @@
         }
         .modal .hint { font-size: 11px; color: var(--muted); margin: 0 0 16px; text-align: left; }
         .modal .btn-save { background: var(--p); color: #fff; }
+        /* Mod edit hebahan di laman web */
+        .edit-banner {
+            display: none;
+            align-items: center;
+            gap: 10px;
+            background: #fffbeb;
+            border: 1.5px solid #fbbf24;
+            color: #92400e;
+            border-radius: 12px;
+            padding: 12px 14px;
+            margin: 18px 0 16px;
+            font-size: 12px;
+            line-height: 1.4;
+        }
+        .edit-banner.show { display: flex; }
+        .edit-banner .eb-text { flex: 1; }
+        .edit-banner b { color: #78350f; }
+        .edit-banner button {
+            background: #fff; color: #92400e; border: 1px solid #fbbf24;
+            border-radius: 8px; padding: 6px 10px; font-family: inherit;
+            font-size: 11px; font-weight: 700; cursor: pointer; flex-shrink: 0;
+        }
+        .admin-row { flex-wrap: wrap; gap: 4px; }
+        .pilih-item {
+            display: block; width: 100%; text-align: left;
+            background: #f8faf8; border: 1.5px solid var(--line); border-radius: 10px;
+            padding: 12px 14px; margin-bottom: 8px; cursor: pointer; font-family: inherit;
+        }
+        .pilih-item:hover { border-color: var(--s); }
+        .pilih-item b { display: block; color: var(--p); font-size: 14px; }
+        .pilih-item span { font-size: 11px; color: var(--muted); }
+
         .modal .btn-link {
             background: none; border: none; color: var(--err);
             font-size: 12px; font-weight: 600; margin-top: 12px; cursor: pointer;
@@ -579,6 +611,11 @@
 
     <div class="card">
         <div class="save-ind" id="saveInd">✓ Disimpan</div>
+
+        <div class="edit-banner" id="editBanner" role="status">
+            <div class="eb-text">✏️ Mengedit hebahan di laman web: <b id="editNama"></b><br>Tekan hantar untuk kemas kini rekod yang sama.</div>
+            <button onclick="keluarEdit()">Selesai</button>
+        </div>
 
         <div class="masthead">
             <div class="kicker">Biro Khairat MKSLB</div>
@@ -687,6 +724,9 @@
                 <span class="admin-dot" id="adminDot"></span>
                 <span id="adminLabel">Laman web: tidak aktif</span>
             </button>
+            <button class="admin-link" id="btnEditWeb" onclick="bukaSenarai()" style="display:none">
+                ✏️ <span>Edit hebahan di laman web</span>
+            </button>
         </div>
     </div>
 
@@ -704,6 +744,17 @@
         <div class="btn-group">
             <button class="btn btn-cancel" onclick="tutupModal()">Batal</button>
             <button class="btn btn-confirm" onclick="padamSemua()">Ya, Padam</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal-bg" id="senaraiBg">
+    <div class="modal">
+        <h3 class="ok">✏️ Edit Hebahan</h3>
+        <p>Pilih hebahan yang sedang dipapar di laman web. Butirannya akan dimuat ke borang untuk dibetulkan.</p>
+        <div id="senaraiIsi" style="text-align:left;max-height:50vh;overflow:auto"></div>
+        <div class="btn-group" style="grid-template-columns:1fr;margin-top:8px">
+            <button class="btn btn-cancel" onclick="tutupSenarai()">Tutup</button>
         </div>
     </div>
 </div>
@@ -1035,9 +1086,14 @@
 
     // Guna ID yang sama jika ini pembetulan hebahan terakhir (tarikh meninggal sama
     // dan nama hampir sama). Jika arwah lain, cipta ID baru supaya tidak tertindih.
+    function bacaDraf() {
+        try { return JSON.parse(bacaLS(DRAF_KEY) || 'null'); } catch (e) { return null; }
+    }
+
     function pilihId(nama, trk) {
-        let d = null;
-        try { d = JSON.parse(bacaLS(DRAF_KEY) || 'null'); } catch (e) {}
+        const d = bacaDraf();
+        // Mod edit (dimuat dari laman web): sentiasa timpa rekod asal, walau nama/tarikh diubah
+        if (d && d.id && d.edit) return d.id;
         if (d && d.id && d.trk === trk) {
             const had = Math.max(3, Math.floor(Math.max(nama.length, d.nama.length) * 0.3));
             if (jarak(nama, d.nama) <= had) return d.id;
@@ -1082,7 +1138,10 @@
             });
             const out = await res.json();
             if (out.ok) {
-                tulisLS(DRAF_KEY, JSON.stringify({ id: out.id, nama: h.nama, trk: h.tarikhMeninggal }));
+                const lama = bacaDraf();
+                const edit = !!(lama && lama.edit && lama.id === out.id);
+                tulisLS(DRAF_KEY, JSON.stringify({ id: out.id, nama: h.nama, trk: h.tarikhMeninggal, edit: edit }));
+                kemaskiniEditUI();
                 toast(out.tindakan === 'kemaskini'
                     ? '✓ Hebahan di laman web dikemas kini'
                     : '✓ Dihantar ke WhatsApp & laman web masjid', 'ok');
@@ -1101,7 +1160,91 @@
         $('adminDot').classList.toggle('on', ada);
         $('adminLabel').textContent = ada ? 'Laman web: aktif' : 'Laman web: tidak aktif';
         $('btnBuangKod').style.display = ada ? 'inline-block' : 'none';
+        $('btnEditWeb').style.display = ada ? 'inline-flex' : 'none';
+        kemaskiniEditUI();
     }
+
+    // ===== EDIT HEBAHAN DI LAMAN WEB (override dari mana-mana telefon ber-Kod Admin) =====
+    let senaraiAktif = [];
+
+    function kemaskiniEditUI() {
+        const d = bacaDraf();
+        const on = !!(d && d.edit && bacaLS(ADMIN_KEY));
+        $('editBanner').classList.toggle('show', on);
+        if (on) $('editNama').textContent = d.nama || '';
+    }
+
+    async function bukaSenarai() {
+        const box = $('senaraiIsi');
+        box.innerHTML = '<p class="hint" style="text-align:center">Memuatkan hebahan aktif…</p>';
+        $('senaraiBg').classList.add('show');
+        try {
+            const res = await fetch(GAS_URL + '?t=' + Date.now(), { cache: 'no-store' });
+            const out = await res.json();
+            senaraiAktif = (out && out.ok && Array.isArray(out.hebahan)) ? out.hebahan : [];
+        } catch (e) {
+            box.innerHTML = '<p class="hint" style="text-align:center">Tiada sambungan. Cuba lagi sebentar.</p>';
+            return;
+        }
+        if (!senaraiAktif.length) {
+            box.innerHTML = '<p class="hint" style="text-align:center">Tiada hebahan aktif di laman web.</p>';
+            return;
+        }
+        box.innerHTML = '';
+        senaraiAktif.forEach((h, i) => {
+            const b = document.createElement('button');
+            b.className = 'pilih-item';
+            b.innerHTML = '<b></b><span></span>';
+            b.querySelector('b').textContent = h.nama;
+            b.querySelector('span').textContent = (h.gelaran || '') + ' · ' + fmtD(h.tarikhMeninggal);
+            b.onclick = () => muatKeBorang(senaraiAktif[i]);
+            box.appendChild(b);
+        });
+    }
+    function tutupSenarai() { $('senaraiBg').classList.remove('show'); }
+
+    function setPilihan(selId, nilai, exId) {
+        const sel = $(selId);
+        const ada = [...sel.options].some(o => o.value === nilai && o.value !== 'EX');
+        if (!nilai) { sel.value = sel.options[0].value; if (exId) $(exId).value = ''; return; }
+        if (ada) { sel.value = nilai; if (exId) $(exId).value = ''; }
+        else { sel.value = 'EX'; if (exId) $(exId).value = nilai; }
+    }
+
+    function muatKeBorang(h) {
+        const AKT = ["AMBIL JENAZAH", "MANDI & KAPAN", "TAHLIL ARWAH", "SOLAT JENAZAH", "PENGEBUMIAN"];
+        $('jnt').value = h.jantina === 'P' ? 'p' : 'l';
+        $('nm').value = h.nama || '';
+        $('umr').value = (h.umur == null ? '' : h.umur);
+        $('trk').value = h.tarikhMeninggal || '';
+        $('trkP').value = h.tarikhUrus || '';
+        $('alm').value = h.alamat || '';
+        const jadual = Array.isArray(h.jadual) ? h.jadual : [];
+        AKT.forEach((nama, i) => {
+            const id = i + 1;
+            const j = jadual.find(x => x && x.aktiviti === nama);
+            $('c' + id).checked = !!j;
+            if (j) {
+                if (j.masa) $('m' + id).value = j.masa;
+                setPilihan('l' + id, j.lokasi || '', 'o' + id);
+            }
+            tgl(id);
+        });
+        setPilihan('thl', h.tahlil || '', 'thlEx');
+        tglTahlil();
+        $('ws').value = h.telWaris || '';
+        $('hbg').value = h.hubungan || '';
+
+        tulisLS(DRAF_KEY, JSON.stringify({ id: h.id, nama: h.nama, trk: h.tarikhMeninggal, edit: true }));
+        tutupSenarai();
+        update();
+        kemaskiniEditUI();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        toast('Hebahan dimuat. Betulkan, kemudian tekan hantar untuk kemas kini.', 'ok');
+    }
+
+    // Keluar mod edit: borang dikosongkan supaya hebahan seterusnya tidak menimpa rekod ini
+    function keluarEdit() { konfirmaReset(); }
 
     function bukaAdmin() {
         $('kodAdmin').value = '';
@@ -1161,6 +1304,7 @@
     document.addEventListener('click', e => {
         if (e.target.id === 'modalBg') tutupModal();
         if (e.target.id === 'adminBg') tutupAdmin();
+        if (e.target.id === 'senaraiBg') tutupSenarai();
     });
 
     // ===== PWA INSTALL =====
