@@ -748,6 +748,18 @@
     </div>
 </div>
 
+<div class="modal-bg" id="konflikBg">
+    <div class="modal">
+        <h3 class="ok" id="konflikTajuk"></h3>
+        <p id="konflikTeks"></p>
+        <div class="btn-group" style="grid-template-columns:1fr">
+            <button class="btn btn-save" id="konflikA"></button>
+            <button class="btn btn-cancel" id="konflikB"></button>
+        </div>
+        <button class="btn-link" id="konflikBatal" style="display:inline-block;color:var(--muted)">Batal</button>
+    </div>
+</div>
+
 <div class="modal-bg" id="senaraiBg">
     <div class="modal">
         <h3 class="ok">✏️ Edit Hebahan</h3>
@@ -1124,9 +1136,69 @@
         };
     }
 
+    // ===== SEMAKAN KONFLIK (rekod diubah dari telefon lain) =====
+    // Tandatangan ringkas kandungan rekod seperti yang disimpan di laman web
+    function tandatangan(r) {
+        if (!r) return '';
+        const jd = (Array.isArray(r.jadual) ? r.jadual : []).map(x => [x.aktiviti, x.masa, x.lokasi].join('|')).join(';');
+        const s = [r.jantina, r.nama, r.umur == null ? '' : String(r.umur), r.tarikhMeninggal, r.tarikhUrus,
+                   r.alamat, jd, r.tahlil, r.telWaris, r.hubungan].join('¦');
+        let x = 5381;
+        for (let i = 0; i < s.length; i++) x = ((x << 5) + x + s.charCodeAt(i)) | 0;
+        return (x >>> 0).toString(36) + '.' + s.length;
+    }
+
+    // Rekod aktif di laman web: objek, null (tiada/PADAM/tamat), atau undefined (gagal sambung)
+    async function ambilRekod(id) {
+        try {
+            const res = await fetch(GAS_URL + '?t=' + Date.now(), { cache: 'no-store' });
+            const out = await res.json();
+            if (!out || !out.ok || !Array.isArray(out.hebahan)) return undefined;
+            return out.hebahan.find(x => x.id === id) || null;
+        } catch (e) { return undefined; }
+    }
+
+    // Modal pilihan: pulangkan 'a' (butang utama), 'b' (butang kedua) atau null (batal)
+    function tanya(tajuk, teks, labelA, labelB) {
+        return new Promise(selesai => {
+            $('konflikTajuk').textContent = tajuk;
+            $('konflikTeks').textContent = teks;
+            $('konflikA').textContent = labelA;
+            $('konflikB').textContent = labelB;
+            const tutup = v => { $('konflikBg').classList.remove('show'); selesai(v); };
+            $('konflikA').onclick = () => tutup('a');
+            $('konflikB').onclick = () => tutup('b');
+            $('konflikBatal').onclick = () => tutup(null);
+            $('konflikBg').classList.add('show');
+        });
+    }
+
     async function terbitKeWeb(kod, teks) {
         const h = binaHebahan(teks);
         const id = pilihId(h.nama, h.tarikhMeninggal);
+
+        // Hantar semula rekod sedia ada: pastikan tiada telefon lain mengubahnya sejak kali terakhir
+        const d = bacaDraf();
+        if (d && d.id === id && d.sig) {
+            const rek = await ambilRekod(id);
+            if (rek === null) {
+                const p = await tanya('Hebahan Tidak Aktif',
+                    'Hebahan ini sudah dipadam atau tamat tempoh di laman web. Terbitkan semula?',
+                    'Terbit semula', 'Jangan terbit');
+                if (p !== 'a') { toast('Tidak diterbit ke laman web. WhatsApp tetap dibuka.', 'warn'); return; }
+            } else if (rek && tandatangan(rek) !== d.sig) {
+                const p = await tanya('Telah Dikemas Kini',
+                    'Hebahan ini telah dibetulkan dari telefon lain selepas anda menghantarnya. Menghantar sekarang akan menimpa pembetulan tersebut.',
+                    'Muat versi terkini', 'Timpa juga');
+                if (p === 'a') {
+                    muatKeBorang(rek);
+                    toast('Versi terkini dimuat. Semak, kemudian tekan hantar jika perlu.', 'ok');
+                    return;
+                }
+                if (p !== 'b') { toast('Tidak diterbit ke laman web.', 'warn'); return; }
+            }
+        }
+
         toast('Membuka WhatsApp & menerbit ke laman web...', 'ok');
         try {
             // text/plain: elak CORS preflight (GAS tidak sokong OPTIONS)
@@ -1140,7 +1212,9 @@
             if (out.ok) {
                 const lama = bacaDraf();
                 const edit = !!(lama && lama.edit && lama.id === out.id);
-                tulisLS(DRAF_KEY, JSON.stringify({ id: out.id, nama: h.nama, trk: h.tarikhMeninggal, edit: edit }));
+                // Simpan tandatangan versi yang kini di laman web (untuk semakan konflik seterusnya)
+                const rek = await ambilRekod(out.id);
+                tulisLS(DRAF_KEY, JSON.stringify({ id: out.id, nama: h.nama, trk: h.tarikhMeninggal, edit: edit, sig: rek ? tandatangan(rek) : '' }));
                 kemaskiniEditUI();
                 toast(out.tindakan === 'kemaskini'
                     ? '✓ Hebahan di laman web dikemas kini'
@@ -1235,7 +1309,7 @@
         $('ws').value = h.telWaris || '';
         $('hbg').value = h.hubungan || '';
 
-        tulisLS(DRAF_KEY, JSON.stringify({ id: h.id, nama: h.nama, trk: h.tarikhMeninggal, edit: true }));
+        tulisLS(DRAF_KEY, JSON.stringify({ id: h.id, nama: h.nama, trk: h.tarikhMeninggal, edit: true, sig: tandatangan(h) }));
         tutupSenarai();
         update();
         kemaskiniEditUI();
@@ -1305,6 +1379,7 @@
         if (e.target.id === 'modalBg') tutupModal();
         if (e.target.id === 'adminBg') tutupAdmin();
         if (e.target.id === 'senaraiBg') tutupSenarai();
+        if (e.target.id === 'konflikBg') $('konflikBatal').click();
     });
 
     // ===== PWA INSTALL =====
