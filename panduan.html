@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Panduan Admin · e-Takziah MKSLB</title>
+    <meta name="description" content="Cara menjana hebahan kematian menggunakan e-Takziah, Biro Khairat MKSLB.">
+    <meta name="theme-color" content="#0f3d1c">
+    <link rel="icon" type="image/svg+xml" href='data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="32" height="32" rx="7" fill="%230f3d1c"/><path d="M16 6 L19 13 L26 14 L21 19 L22 26 L16 22 L10 26 L11 19 L6 14 L13 13 Z" fill="%23d4af37"/></svg>'>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,700;9..144,800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --p: #0f3d1c; --s: #1b5e20; --dark: #0a1410;
+            --gold: #d4af37; --gold-soft: #e8c76a; --cream: #faf7f0;
+            --ink: #1a1a1a; --muted: #5b6470; --line: #e5e7eb;
+            --ok: #128C7E; --warn: #b45309; --err: #c53030;
+        }
+        * { box-sizing: border-box; }
+        html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; background: #0a1410; }
+        body {
+            margin: 0; padding: 20px 16px 40px;
+            padding-top: max(20px, env(safe-area-inset-top));
+            font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+            color: var(--ink); line-height: 1.6; font-size: 15px;
+            background:
+                radial-gradient(ellipse at top left, rgba(212,175,55,0.08), transparent 50%),
+                radial-gradient(ellipse at bottom right, rgba(27,94,32,0.4), transparent 50%),
+                linear-gradient(135deg, var(--dark) 0%, #0f2418 100%);
+            background-attachment: fixed;
+            min-height: 100vh;
+        }
+        .wrap { max-width: 640px; margin: 0 auto; }
+        .back {
+            display: inline-flex; align-items: center; gap: 6px;
+            color: var(--gold-soft); text-decoration: none; font-size: 13px; font-weight: 600;
+            margin-bottom: 14px;
+        }
+        .card {
+            background: var(--cream); border-radius: 20px; padding: 26px 20px 30px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.4), 0 0 0 1px rgba(212,175,55,0.2);
+            position: relative; overflow: hidden;
+        }
+        .card::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px;
+            background: linear-gradient(90deg, var(--gold), var(--gold-soft), var(--gold));
+        }
+        .kicker { font-size: 10px; letter-spacing: 3px; color: var(--gold); font-weight: 700; text-transform: uppercase; text-align: center; }
+        h1 {
+            font-family: 'Fraunces', Georgia, serif; font-weight: 800; color: var(--p);
+            font-size: 26px; line-height: 1.15; margin: 6px 0 6px; text-align: center; letter-spacing: -0.01em;
+        }
+        .lead { text-align: center; color: var(--muted); margin: 0 auto 22px; max-width: 34ch; }
+
+        .ringkas { display: grid; gap: 10px; margin-bottom: 8px; }
+        .ringkas div {
+            display: flex; gap: 12px; align-items: center;
+            background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px;
+        }
+        .ringkas b {
+            flex-shrink: 0; width: 30px; height: 30px; border-radius: 50%;
+            background: var(--p); color: var(--gold-soft); display: grid; place-items: center; font-size: 14px;
+        }
+        .ringkas span { font-size: 14px; font-weight: 600; color: var(--p); }
+
+        nav.isi { display: flex; flex-wrap: wrap; gap: 6px; margin: 20px 0 4px; }
+        nav.isi a {
+            font-size: 12px; font-weight: 600; color: var(--p); text-decoration: none;
+            background: #fff; border: 1px solid var(--line); border-radius: 20px; padding: 5px 11px;
+        }
+
+        section { margin-top: 30px; }
+        h2 {
+            font-family: 'Fraunces', Georgia, serif; font-weight: 700; color: var(--p);
+            font-size: 20px; margin: 0 0 4px; display: flex; align-items: center; gap: 8px;
+        }
+        h2 .tag {
+            font-family: 'Plus Jakarta Sans', sans-serif; font-size: 10px; font-weight: 700; letter-spacing: 1px;
+            text-transform: uppercase; background: var(--gold); color: var(--p); border-radius: 20px; padding: 2px 8px;
+        }
+        .sub { color: var(--muted); font-size: 14px; margin: 0 0 14px; }
+
+        .step { display: grid; grid-template-columns: 28px 1fr; gap: 12px; margin-top: 18px; }
+        .num {
+            width: 28px; height: 28px; border-radius: 50%; border: 2px solid var(--s);
+            color: var(--s); font-weight: 800; font-size: 13px; display: grid; place-items: center;
+        }
+        .step h3 { font-size: 15px; margin: 2px 0 4px; color: var(--ink); }
+        .step p { margin: 0 0 8px; font-size: 14px; }
+        .step ul { margin: 0 0 8px; padding-left: 18px; font-size: 14px; }
+        .step li { margin-bottom: 4px; }
+
+        figure { margin: 10px 0 4px; }
+        figure img {
+            display: block; width: 100%; height: auto; border-radius: 12px;
+            border: 1px solid var(--line); box-shadow: 0 6px 18px rgba(15,61,28,0.10); background: #fff;
+        }
+        figure.kecil img { max-width: 360px; margin: 0 auto; }
+        figcaption { font-size: 12px; color: var(--muted); text-align: center; margin-top: 6px; }
+
+        .nota {
+            border-radius: 12px; padding: 12px 14px; font-size: 13.5px; margin-top: 10px;
+            background: #f0fdf4; border: 1px solid #bbf7d0; color: #14532d;
+        }
+        .nota.amaran { background: #fffbeb; border-color: #fcd34d; color: #78350f; }
+        .nota b { font-weight: 700; }
+
+        .mesej { width: 100%; border-collapse: separate; border-spacing: 0 8px; font-size: 13.5px; }
+        .mesej td { background: #fff; padding: 10px 12px; vertical-align: top; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+        .mesej td:first-child { border-left: 4px solid var(--ok); border-radius: 10px 0 0 10px; width: 52%; font-weight: 600; }
+        .mesej td:last-child { border-right: 1px solid var(--line); border-radius: 0 10px 10px 0; color: var(--muted); }
+        .mesej tr.k td:first-child { border-left-color: var(--warn); }
+        .mesej tr.m td:first-child { border-left-color: var(--err); }
+
+        .kunci {
+            display: inline-block; font-size: 12.5px; font-weight: 700; padding: 1px 8px; border-radius: 6px;
+            background: #fff; border: 1px solid var(--line); white-space: nowrap;
+        }
+        .tutup {
+            margin-top: 34px; text-align: center; padding: 18px 14px; border-radius: 14px;
+            background: var(--p); color: #fff;
+        }
+        .tutup b { color: var(--gold-soft); }
+        .tutup a {
+            display: inline-block; margin-top: 10px; background: var(--gold); color: var(--p);
+            font-weight: 700; text-decoration: none; padding: 10px 18px; border-radius: 10px; font-size: 14px;
+        }
+        .footer { margin-top: 22px; text-align: center; color: rgba(255,255,255,0.45); font-size: 10px; letter-spacing: 2px; text-transform: uppercase; }
+        .footer span { color: var(--gold); font-weight: 700; }
+
+        @media (min-width: 520px) {
+            .card { padding: 32px 30px 36px; }
+            h1 { font-size: 30px; }
+            .ringkas { grid-template-columns: repeat(3, 1fr); }
+            .ringkas div { flex-direction: column; text-align: center; }
+        }
+    </style>
+</head>
+<body>
+<div class="wrap">
+    <a class="back" href="./">← Kembali ke e-Takziah</a>
+
+    <div class="card">
+        <div class="kicker">Biro Khairat MKSLB</div>
+        <h1>Panduan Admin <span style="white-space:nowrap">e-Takziah</span></h1>
+        <p class="lead">Cara menjana hebahan kematian yang kemas, terus ke WhatsApp dan laman web masjid.</p>
+
+        <div class="ringkas">
+            <div><b>1</b><span>Isi borang</span></div>
+            <div><b>2</b><span>Tekan 🚀 Jana &amp; Hantar</span></div>
+            <div><b>3</b><span>Hantar dalam WhatsApp</span></div>
+        </div>
+
+        <nav class="isi" aria-label="Kandungan">
+            <a href="#sekali">Persediaan</a>
+            <a href="#hebahan">Buat hebahan</a>
+            <a href="#salah">Tersalah taip</a>
+            <a href="#amaran">Amaran</a>
+            <a href="#selesai">Selepas selesai</a>
+            <a href="#mesej">Maksud mesej</a>
+        </nav>
+
+        <!-- A. PERSEDIAAN -->
+        <section id="sekali">
+            <h2>Persediaan <span class="tag">Sekali sahaja</span></h2>
+            <p class="sub">Buat sekali pada telefon anda. Selepas itu tidak perlu diulang.</p>
+
+            <div class="step">
+                <div class="num">1</div>
+                <div>
+                    <h3>Pasang di skrin utama telefon</h3>
+                    <p>Buka <b>e-takziah.masjidkslb.com</b> dalam Chrome. Tekan butang <span class="kunci">Pasang</span> yang muncul, atau tekan <span class="kunci">⋮</span> → <b>Add to Home screen</b>.</p>
+                    <p>e-Takziah kini dibuka seperti aplikasi biasa dari skrin utama.</p>
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="num">2</div>
+                <div>
+                    <h3>Masukkan Kod Admin</h3>
+                    <p>Di bahagian bawah borang, tekan <span class="kunci">● Laman web: tidak aktif</span>. Tampal Kod Admin yang diberi oleh Adib, kemudian tekan <span class="kunci">Simpan</span>.</p>
+                    <figure class="kecil">
+                        <img src="panduan/01-kod.webp" width="720" height="605" loading="lazy" alt="Kotak Kod Admin dengan butang Batal dan Simpan">
+                    </figure>
+                    <p>Bila berjaya, titik bertukar hijau:</p>
+                    <figure class="kecil">
+                        <img src="panduan/02-aktif.webp" width="668" height="76" loading="lazy" alt="Label Laman web: aktif dengan titik hijau">
+                    </figure>
+                    <div class="nota amaran"><b>Jangan kongsi Kod Admin</b> dengan sesiapa. Kod ini membolehkan hebahan diterbitkan ke laman web masjid.</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- B. HEBAHAN -->
+        <section id="hebahan">
+            <h2>Buat Hebahan <span class="tag">Setiap kematian</span></h2>
+            <p class="sub">Ruangan bertanda * wajib diisi. Ruangan lain boleh dibiar kosong dan tidak akan muncul dalam hebahan.</p>
+
+            <div class="step">
+                <div class="num">1</div>
+                <div>
+                    <h3>Maklumat arwah</h3>
+                    <p>Pilih jantina, isi nama penuh, umur dan tarikh meninggal. Huruf besar dibuat secara automatik.</p>
+                    <figure>
+                        <img src="panduan/03-arwah.webp" width="652" height="930" loading="lazy" alt="Bahagian Maklumat Arwah yang telah diisi">
+                    </figure>
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="num">2</div>
+                <div>
+                    <h3>Jadual pengurusan jenazah</h3>
+                    <ul>
+                        <li><b>Tanda ✓</b> aktiviti yang akan berlaku. <b>Buang tanda</b> aktiviti yang tiada, dan ia tidak akan muncul dalam hebahan.</li>
+                        <li>Tukar masa jika perlu.</li>
+                        <li>Lokasi tiada dalam senarai? Pilih <b>LAIN-LAIN</b>, kemudian taip dalam kotak kuning yang muncul.</li>
+                    </ul>
+                    <figure>
+                        <img src="panduan/04-jadual.webp" width="652" height="1142" loading="lazy" alt="Bahagian jadual dengan lokasi Lain-lain dan satu aktiviti tidak ditanda">
+                        <figcaption>Contoh: lokasi "Hospital Banting" ditaip sendiri, dan Tahlil Arwah tidak ditanda.</figcaption>
+                    </figure>
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="num">3</div>
+                <div>
+                    <h3>Tahlil dan waris</h3>
+                    <p>Pilih waktu tahlil dari senarai. Isi nombor telefon dan hubungan waris jika ada.</p>
+                    <figure>
+                        <img src="panduan/05-tahlil.webp" width="652" height="580" loading="lazy" alt="Bahagian Tahlil dan Waris">
+                    </figure>
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="num">4</div>
+                <div>
+                    <h3>Semak pratonton, kemudian tekan 🚀</h3>
+                    <p>Kotak hijau menunjukkan rupa hebahan sebenar. Bila betul, tekan <span class="kunci">🚀 JANA &amp; HANTAR KE WHATSAPP</span>.</p>
+                    <figure>
+                        <img src="panduan/06-butang.webp" width="720" height="598" loading="lazy" alt="Butang Jana dan Hantar ke WhatsApp di bawah pratonton">
+                    </figure>
+                    <p>WhatsApp akan terbuka dengan teks hebahan yang siap. <b>Pilih Adib</b> dan hantar.</p>
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="num">5</div>
+                <div>
+                    <h3>Pastikan mesej hijau muncul</h3>
+                    <p>Kembali ke e-Takziah. Mesej <b>"✓ Dihantar ke WhatsApp &amp; laman web masjid"</b> bermaksud hebahan sudah dipapar di laman web masjid.</p>
+                    <figure>
+                        <img src="panduan/07-toast.webp" width="720" height="450" loading="lazy" alt="Mesej hijau Dihantar ke WhatsApp dan laman web masjid">
+                    </figure>
+                </div>
+            </div>
+        </section>
+
+        <!-- C. SALAH TAIP -->
+        <section id="salah">
+            <h2>Tersalah Taip?</h2>
+            <p class="sub">Tidak perlu risau. Hebahan boleh dibetulkan.</p>
+            <div class="step">
+                <div class="num">✓</div>
+                <div>
+                    <p>Betulkan terus dalam <b>borang yang sama</b>, kemudian tekan <span class="kunci">🚀</span> sekali lagi.</p>
+                    <p>Hebahan di laman web akan <b>dikemas kini</b>, bukan ditambah baru. Mesej yang muncul: <b>"✓ Hebahan di laman web dikemas kini"</b>.</p>
+                    <div class="nota amaran"><b>Jangan tekan Reset</b> sebelum membetulkan. Reset mengosongkan borang, dan hantaran seterusnya akan dikira sebagai hebahan baru.</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- D. AMARAN -->
+        <section id="amaran">
+            <h2>Jika Muncul Amaran</h2>
+            <p class="sub">Amaran ini melindungi hebahan daripada tertimpa secara tidak sengaja.</p>
+
+            <div class="step">
+                <div class="num">!</div>
+                <div>
+                    <h3>"Telah Dikemas Kini"</h3>
+                    <p>Bermaksud <b>Adib sudah membetulkan</b> hebahan ini dari telefonnya.</p>
+                    <figure class="kecil">
+                        <img src="panduan/08-konflik.webp" width="720" height="628" loading="lazy" alt="Amaran Telah Dikemas Kini dengan pilihan Muat versi terkini, Timpa juga dan Batal">
+                    </figure>
+                    <p>Tekan <span class="kunci">Muat versi terkini</span>. Borang anda akan dikemas kini dengan pembetulan tersebut.</p>
+                    <div class="nota amaran">Pilih <b>Timpa juga</b> hanya jika anda pasti versi anda yang betul. Pembetulan Adib akan hilang.</div>
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="num">!</div>
+                <div>
+                    <h3>"Hebahan Tidak Aktif"</h3>
+                    <p>Bermaksud hebahan ini <b>sudah dipadam</b> atau tamat tempoh di laman web. Tekan <span class="kunci">Jangan terbit</span> dan hubungi Adib jika tidak pasti.</p>
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="num">✎</div>
+                <div>
+                    <h3>Sepanduk kuning "Mengedit hebahan"</h3>
+                    <p>Muncul bila hebahan dimuat semula dari laman web untuk dibetulkan. Setiap hantaran akan mengemas kini hebahan yang sama. Tekan <span class="kunci">Selesai</span> bila sudah habis membetulkan.</p>
+                    <figure>
+                        <img src="panduan/09-banner.webp" width="676" height="218" loading="lazy" alt="Sepanduk kuning Mengedit hebahan di laman web dengan butang Selesai">
+                    </figure>
+                </div>
+            </div>
+        </section>
+
+        <!-- E. SELESAI -->
+        <section id="selesai">
+            <h2>Selepas Selesai</h2>
+            <div class="step">
+                <div class="num">✓</div>
+                <div>
+                    <p>Bila hebahan sudah betul dan dihantar, tekan <span class="kunci">🗑️ Reset</span>, kemudian <span class="kunci">Ya, Padam</span>.</p>
+                    <figure class="kecil">
+                        <img src="panduan/11-reset.webp" width="720" height="415" loading="lazy" alt="Pengesahan Padam Semua Data">
+                    </figure>
+                    <div class="nota">Reset <b>hanya mengosongkan borang di telefon anda</b>. Hebahan di laman web, WhatsApp dan Telegram <b>tidak terjejas</b>. Kod Admin juga kekal.</div>
+                    <p style="margin-top:10px">Wajib Reset <b>sebelum</b> membuat hebahan untuk arwah seterusnya.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- F. MAKSUD MESEJ -->
+        <section id="mesej">
+            <h2>Maksud Mesej</h2>
+            <p class="sub">Mesej kecil muncul di bawah skrin selepas menekan butang.</p>
+            <table class="mesej">
+                <tr><td>✓ Dihantar ke WhatsApp &amp; laman web masjid</td><td>Berjaya. Tiada tindakan lain.</td></tr>
+                <tr><td>✓ Hebahan di laman web dikemas kini</td><td>Pembetulan berjaya disimpan.</td></tr>
+                <tr><td>Membuka WhatsApp & menerbit ke laman web...</td><td>Sedang dihantar. Tunggu mesej ✓ hijau.</td></tr>
+                <tr class="k"><td>Membuka WhatsApp...<br><small style="font-weight:400">(tanpa perkataan "laman web")</small></td><td>Telefon ini belum ada Kod Admin. Hebahan tidak masuk ke laman web. Lihat <a href="#sekali">Persediaan</a>.</td></tr>
+                <tr class="k"><td>Tiada sambungan...</td><td>Internet lemah. Tekan 🚀 sekali lagi bila talian baik. Tiada pendua akan berlaku.</td></tr>
+                <tr class="m"><td>Sila lengkapkan ruangan wajib (*)</td><td>Ada ruangan bertanda * yang masih kosong.</td></tr>
+                <tr class="m"><td>Kod Admin tidak sah</td><td>Kod salah atau sudah ditukar. Minta kod baru daripada Adib.</td></tr>
+            </table>
+        </section>
+
+        <div class="tutup">
+            Ada masalah atau soalan?<br><b>Hubungi Adib</b> sebelum menghantar ke kumpulan rasmi.
+            <br><a href="./">Buka e-Takziah</a>
+        </div>
+    </div>
+
+    <div class="footer">Developed by <span>NISKALA PAWAKA</span> © 2026</div>
+</div>
+</body>
+</html>
