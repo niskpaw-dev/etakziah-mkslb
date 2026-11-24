@@ -1,9 +1,9 @@
 /**
- * e-Takziah MKSLB · Backend Hebahan  (v2 · dengan Bot Biro Khairat MKSLB)
+ * e-Takziah MKSLB · Backend Hebahan  (v3 · Bot Biro Khairat MKSLB + Page FB)
  * ------------------------------------------------------------
  *   e-Takziah ──POST──► GAS (doPost) ──► Sheet "Hebahan"
  *                              └──► Telegram: pratonton kepada Adib
- *                                     [✅ Terbit ke Group] → post ke group rasmi
+ *                                     [✅ Terbit] → post ke group rasmi + Page FB
  *   masjidkslb.com ──GET──► GAS (doGet) ──► hebahan aktif sahaja
  *
  * Status rekod (kolum C):
@@ -35,17 +35,21 @@ const P = {
   TG_SECRET: 'TG_SECRET',        // rahsia laluan webhook (dijana automatik)
   TG_PAIR: 'TG_PAIR',            // kod pasangan sementara untuk /daftar dan /sambung
   TG_ADMIN: 'TG_ADMIN_CHAT',     // chat id Adib (pelulus)
-  TG_GROUP: 'TG_GROUP_CHAT'      // chat id group rasmi
+  TG_GROUP: 'TG_GROUP_CHAT',     // chat id group rasmi
+  // Facebook Page (isi sendiri; kosong = FB tidak digunakan)
+  FB_TOKEN: 'FB_TOKEN',          // token Page (bukan token pengguna)
+  FB_PAGE: 'FB_PAGE_ID'          // ID Page masjid
 };
 
-// Susunan kolum dalam Sheet (A → Q). Jangan ubah tanpa ubah Sheet.
+// Susunan kolum dalam Sheet (A → R). Jangan ubah tanpa ubah Sheet.
 const COL = {
   ID: 0, DICIPTA: 1, STATUS: 2, JANTINA: 3, NAMA: 4, UMUR: 5,
   TRK_MATI: 6, ALAMAT: 7, TRK_URUS: 8, TAMAT: 9, JADUAL: 10,
   TAHLIL: 11, TEL: 12, HUBUNGAN: 13, TEKS: 14,
-  TG_MSG: 15, TG_STATUS: 16
+  TG_MSG: 15, TG_STATUS: 16, FB_POST: 17
 };
-const BIL_KOLUM = 15;   // kolum yang ditulis oleh e-Takziah (A → O). P & Q diurus oleh bot.
+const BIL_KOLUM = 15;   // kolum yang ditulis oleh e-Takziah (A → O). P, Q & R diurus oleh bot.
+const SEMUA_KOLUM = COL.FB_POST + 1;
 
 // ============================================================
 // POST — e-Takziah ATAU webhook Telegram
@@ -116,7 +120,8 @@ function doPost(e) {
       // Kekalkan masa asal dicipta; status kembali TERBIT
       baris[COL.DICIPTA] = sh.getRange(idx, COL.DICIPTA + 1).getValue() || baris[COL.DICIPTA];
       sh.getRange(idx, 1, 1, BIL_KOLUM).setValues([baris]);
-      sudahDiGroup = !!teks_(sh.getRange(idx, COL.TG_MSG + 1).getValue());
+      const lama = bacaBaris_(sh, idx);
+      sudahDiGroup = !!(teks_(lama[COL.TG_MSG]) || teks_(lama[COL.FB_POST]));
       tindakan = 'kemaskini';
     } else {
       sh.appendRow(baris);
@@ -210,8 +215,9 @@ function bilaSheetDiedit(e) {
   const r0 = e.range.getRow(), nr = e.range.getNumRows();
   for (let r = Math.max(r0, 2); r < r0 + nr; r++) {
     if (String(sh.getRange(r, COL.STATUS + 1).getValue()).trim() !== 'PADAM') continue;
-    const id = teks_(sh.getRange(r, COL.ID + 1).getValue());
-    if (id && teks_(sh.getRange(r, COL.TG_MSG + 1).getValue())) tgCuba_(() => tgTanyaPadam_(id));
+    const row = bacaBaris_(sh, r);
+    const id = teks_(row[COL.ID]);
+    if (id && (teks_(row[COL.TG_MSG]) || teks_(row[COL.FB_POST]))) tgCuba_(() => tgTanyaPadam_(id));
   }
 }
 
@@ -276,6 +282,60 @@ function setupTelegram() {
   } else {
     Logger.log('Admin & group sudah disambung. Tiada kod diperlukan.');
   }
+}
+
+/**
+ * Sambungkan Page Facebook. Jalankan SELEPAS isi Script Properties:
+ *   FB_PAGE_ID  = ID Page masjid
+ *   FB_TOKEN    = token Page (bukan token pengguna)
+ * Semak token tanpa membuat sebarang posting, dan sediakan kolum R "FB Post ID".
+ */
+function setupFacebook() {
+  const page = prop_(P.FB_PAGE), token = prop_(P.FB_TOKEN);
+  if (!page || !token) throw new Error('Isi dulu Script properties FB_PAGE_ID dan FB_TOKEN (token Page).');
+
+  const p = fbApi_(page, { fields: 'name' }, 'get');
+  if (!p.ok) throw new Error('Page tidak dapat dicapai: ' + p.ralat + ' · Semak FB_PAGE_ID dan FB_TOKEN.');
+  // Token Page: /me = Page itu sendiri. Token pengguna: /me = orang → posting akan ditolak
+  const me = fbApi_('me', { fields: 'id,name' }, 'get');
+  if (!me.ok || String(me.id) !== page) {
+    throw new Error('FB_TOKEN ialah token pengguna (' + (me.name || '?') + '), bukan token Page. Salin access_token Page dari me/accounts.');
+  }
+  const d = fbApi_('debug_token', { input_token: token }, 'get');
+  const t = (d.ok && d.data) || {};
+  const luput = t.expires_at === 0 ? 'tiada tarikh luput ✅'
+    : t.expires_at ? 'luput ' + Utilities.formatDate(new Date(t.expires_at * 1000), CONFIG.TZ, 'd MMM yyyy') + ' ⚠️' : '?';
+  const izin = (t.scopes || []).indexOf('pages_manage_posts') >= 0 ? '✅' : '❌ (perlu pages_manage_posts)';
+
+  // Kolum R: FB Post ID (format sama seperti kolum Q)
+  const sh = sheet_();
+  if (sh.getMaxColumns() < SEMUA_KOLUM) sh.insertColumnsAfter(sh.getMaxColumns(), SEMUA_KOLUM - sh.getMaxColumns());
+  const kepala = sh.getRange(1, COL.FB_POST + 1);
+  if (!teks_(kepala.getValue())) {
+    sh.getRange(1, COL.TG_STATUS + 1).copyTo(kepala, SpreadsheetApp.CopyPasteType.PASTE_FORMAT, false);
+    kepala.setValue('FB Post ID');
+  }
+
+  Logger.log('Page FB: ' + p.name);
+  Logger.log('Token: ' + luput + ' · Izin posting: ' + izin);
+  Logger.log('Kolum R "FB Post ID": sedia');
+  Logger.log('Seterusnya: Deploy → Manage deployments → ✏️ → New version → Deploy (jika belum).');
+}
+
+/**
+ * Uji posting FB tanpa jemaah nampak: cipta post TIDAK DITERBITKAN → edit → padam.
+ */
+function ujiFacebook() {
+  if (!fbAktif_()) throw new Error('Jalankan setupFacebook dahulu.');
+  const c = fbApi_(prop_(P.FB_PAGE) + '/feed', { message: 'Ujian e-Takziah (tidak diterbitkan)', published: 'false' });
+  if (!c.ok) throw new Error('Cipta post gagal: ' + c.ralat);
+  Logger.log('1. Cipta post (tersembunyi): ✅ ' + c.id);
+  const e = fbApi_(c.id, { message: 'Ujian e-Takziah (diedit)' });
+  Logger.log('2. Edit post: ' + (e.ok ? '✅' : '❌ ' + e.ralat));
+  const d = fbApi_(c.id, {}, 'delete');
+  Logger.log('3. Padam post: ' + (d.ok ? '✅' : '❌ ' + d.ralat + ' · padam manual di Page (Content → Posts)'));
+  if (!e.ok || !d.ok) throw new Error('Ujian FB tidak lengkap. Lihat log di atas.');
+  Logger.log('Page FB sedia. Hebahan seterusnya akan dipost ke Group & FB bila anda tekan ✅.');
 }
 
 // Tukar token e-Takziah jika bocor. Lepas jalankan, kemas kini Kod Admin di setiap telefon.
@@ -346,7 +406,8 @@ function tgMesej_(m) {
 
   if (peribadi && arahan === '/status' && String(m.chat.id) === props.getProperty(P.TG_ADMIN)) {
     tgHantar_(m.chat.id, 'Status Bot Biro Khairat MKSLB\n• Pelulus: ✓ akaun ini\n• Group: ' + (props.getProperty(P.TG_GROUP) ? '✓ disambung' : '✗ belum') +
-      '\n• Pin hebahan: ' + (CONFIG.TG_PIN ? 'ya' : 'tidak'));
+      '\n• Pin hebahan: ' + (CONFIG.TG_PIN ? 'ya' : 'tidak') +
+      '\n• Page FB: ' + (fbAktif_() ? '✓ disambung' : '✗ belum (FB_PAGE_ID / FB_TOKEN)'));
     return;
   }
 
@@ -377,10 +438,11 @@ function tgButang_(q) {
     const sh = sheet_();
     const idx = cariBaris_(sh, idSah_(id));
     if (idx < 0) { jawab('Hebahan tidak dijumpai dalam Sheet.', true); return; }
-    const row = sh.getRange(idx, 1, 1, COL.TG_STATUS + 1).getValues()[0];
+    const row = bacaBaris_(sh, idx);
     const status = String(row[COL.STATUS]).trim();
     const teks = teks_(row[COL.TEKS]);
     const msgId = teks_(row[COL.TG_MSG]);
+    const fbId = teks_(row[COL.FB_POST]);
 
     if (aksi === 't') {
       if (status !== 'TERBIT') { jawab('Hebahan ini berstatus ' + status + '. Tidak diterbit.', true); return; }
@@ -401,8 +463,34 @@ function tgButang_(q) {
         if (CONFIG.TG_PIN) tgCuba_(() => tgApi_('pinChatMessage', { chat_id: group, message_id: Number(mid), disable_notification: true }));
       }
       sh.getRange(idx, COL.TG_MSG + 1, 1, 2).setValues([[mid, (baru ? 'DIPOST ' : 'DIKEMASKINI ') + sekarang_()]]);
-      tgTutupPratonton_(msg, (baru ? '✅ DITERBITKAN KE GROUP · ' : '✅ POST DI GROUP DIKEMAS KINI · ') + jamKini_(), teks);
-      jawab(baru ? 'Diterbitkan ke group.' : 'Post di group dikemas kini.');
+
+      // Page FB (gagal FB tidak menjejaskan group)
+      const tanda = ['Group ' + (baru ? '✅' : '✏️')];
+      let nota = '', butang = null;
+      if (fbAktif_()) {
+        const f = fbTerbit_(fbId, teks);
+        if (f.ok) {
+          sh.getRange(idx, COL.FB_POST + 1).setValue(f.id);
+          tanda.push('FB ' + (f.baru ? '✅' : '✏️'));
+        } else {
+          tanda.push('FB ❌');
+          nota = '\n⚠️ FB: ' + String(f.ralat).slice(0, 160);
+          butang = { inline_keyboard: [[{ text: '🔁 Cuba semula FB', callback_data: 'f|' + id }]] };
+        }
+      }
+      tgTutupPratonton_(msg, (baru ? '✅ DITERBITKAN · ' : '✅ DIKEMAS KINI · ') + tanda.join(' · ') + ' · ' + jamKini_() + nota, teks, butang);
+      jawab(butang ? 'Group OK. FB gagal, tekan Cuba semula FB.' : (baru ? 'Diterbitkan.' : 'Post dikemas kini.'), !!butang);
+      return;
+    }
+
+    if (aksi === 'f') {
+      if (status !== 'TERBIT') { jawab('Hebahan ini berstatus ' + status + '. Tidak diterbit.', true); return; }
+      if (!fbAktif_()) { jawab('Page FB belum disambung. Jalankan setupFacebook.', true); return; }
+      const f = fbTerbit_(fbId, teks);
+      if (!f.ok) { jawab('FB masih gagal: ' + String(f.ralat).slice(0, 150), true); return; }
+      sh.getRange(idx, COL.FB_POST + 1).setValue(f.id);
+      tgTutupPratonton_(msg, '✅ FB ' + (f.baru ? 'DITERBITKAN' : 'DIKEMAS KINI') + ' (cubaan semula) · ' + jamKini_(), teks);
+      jawab('FB berjaya.');
       return;
     }
 
@@ -414,23 +502,37 @@ function tgButang_(q) {
 
     if (aksi === 'd') {
       const group = prop_(P.TG_GROUP);
+      const tanda = [];
+      let nota = '', butang = null;
       if (msgId && group) {
         if (CONFIG.TG_PIN) tgCuba_(() => tgApi_('unpinChatMessage', { chat_id: group, message_id: Number(msgId) }));
         const r = tgApi_('deleteMessage', { chat_id: group, message_id: Number(msgId) });
-        if (!r.ok) {
-          tgTutupPratonton_(msg, '⚠️ Tidak dapat dipadam oleh bot (Telegram hadkan 48 jam). Sila padam post itu secara manual dalam group.', '');
-          jawab('Sila padam secara manual.', true);
-          return;
+        if (r.ok) {
+          sh.getRange(idx, COL.TG_MSG + 1, 1, 2).setValues([['', 'DIPADAM ' + sekarang_()]]);
+          tanda.push('Group 🗑️');
+        } else {
+          tanda.push('Group ⚠️');
+          nota += '\n⚠️ Telegram hanya benarkan bot padam dalam 48 jam. Sila padam post itu secara manual dalam group.';
         }
-        sh.getRange(idx, COL.TG_MSG + 1, 1, 2).setValues([['', 'DIPADAM ' + sekarang_()]]);
       }
-      tgTutupPratonton_(msg, '🗑️ POST DIPADAM DARI GROUP · ' + jamKini_(), '');
-      jawab('Post dipadam dari group.');
+      if (fbId && fbAktif_()) {
+        const r = fbApi_(fbId, {}, 'delete');
+        if (r.ok || r.kod === 100) {   // 100 = post sudah tiada (dipadam manual)
+          sh.getRange(idx, COL.FB_POST + 1).setValue('');
+          tanda.push('FB 🗑️');
+        } else {
+          tanda.push('FB ❌');
+          nota += '\n⚠️ FB: ' + String(r.ralat).slice(0, 160);
+          butang = { inline_keyboard: [[{ text: '🔁 Cuba padam semula', callback_data: 'd|' + id }]] };
+        }
+      }
+      tgTutupPratonton_(msg, '🗑️ DIPADAM · ' + (tanda.join(' · ') || 'tiada post') + ' · ' + jamKini_() + nota, '', butang);
+      jawab(nota ? 'Sebahagian perlu tindakan, lihat mesej.' : 'Post dipadam.', !!nota);
       return;
     }
 
     if (aksi === 'k') {
-      tgTutupPratonton_(msg, '✓ Post di group dibiarkan.', '');
+      tgTutupPratonton_(msg, '✓ Post dibiarkan.', '');
       jawab('Dibiarkan.');
     }
   } finally {
@@ -444,7 +546,8 @@ function tgPratonton_(id, teks, tindakan, sudahDiGroup) {
   const kepala = tindakan === 'baru'
     ? '🆕 HEBAHAN BARU · menunggu kelulusan anda'
     : '✏️ HEBAHAN DIKEMAS KINI · menunggu kelulusan anda';
-  const butangUtama = sudahDiGroup ? '✅ Kemas kini post di Group' : '✅ Terbit ke Group';
+  const tempat = fbAktif_() ? 'Group & FB' : 'Group';
+  const butangUtama = sudahDiGroup ? '✅ Kemas kini post ' + tempat : '✅ Terbit ke ' + tempat;
   tgApi_('sendMessage', {
     chat_id: admin,
     text: kepala + '\n━━━━━━━━━━━━━━━━\n\n' + teks,
@@ -462,26 +565,31 @@ function tgTanyaPadam_(id) {
   const sh = sheet_();
   const idx = cariBaris_(sh, id);
   if (idx < 0) return;
-  const row = sh.getRange(idx, 1, 1, COL.TG_STATUS + 1).getValues()[0];
-  if (!teks_(row[COL.TG_MSG])) return;
+  const row = bacaBaris_(sh, idx);
+  const tempat = [];
+  if (teks_(row[COL.TG_MSG])) tempat.push('Group');
+  if (teks_(row[COL.FB_POST]) && fbAktif_()) tempat.push('FB');
+  if (!tempat.length) return;
   tgApi_('sendMessage', {
     chat_id: admin,
-    text: '🗑️ Hebahan ' + teks_(row[COL.NAMA]) + ' ditukar kepada PADAM.\nPadam juga post itu dari group rasmi?',
+    text: '🗑️ Hebahan ' + teks_(row[COL.NAMA]) + ' ditukar kepada PADAM.\nPadam juga post itu dari ' + tempat.join(' & ') + '?',
     reply_markup: { inline_keyboard: [[
-      { text: '🗑️ Padam dari Group', callback_data: 'd|' + id },
+      { text: '🗑️ Padam dari ' + tempat.join(' & '), callback_data: 'd|' + id },
       { text: 'Biarkan', callback_data: 'k|' + id }
     ]] }
   });
 }
 
 // Tukar mesej pratonton: buang butang, letak status di atas
-function tgTutupPratonton_(msg, kepala, teks) {
+function tgTutupPratonton_(msg, kepala, teks, butang) {
   if (!msg || !msg.chat) return;
-  tgCuba_(() => tgApi_('editMessageText', {
+  const data = {
     chat_id: msg.chat.id, message_id: msg.message_id,
     text: kepala + (teks ? '\n━━━━━━━━━━━━━━━━\n\n' + teks : ''),
     disable_web_page_preview: true
-  }));
+  };
+  if (butang) data.reply_markup = butang;   // tanpa reply_markup = butang dibuang
+  tgCuba_(() => tgApi_('editMessageText', data));
 }
 
 function tgHantar_(chatId, teks) {
@@ -514,6 +622,45 @@ function prop_(k) {
 }
 
 // ============================================================
+// FACEBOOK PAGE
+// ============================================================
+function fbAktif_() {
+  return !!(prop_(P.FB_TOKEN) && prop_(P.FB_PAGE));
+}
+
+// Post baru, atau edit post sedia ada. Pulangkan { ok, id, baru, ralat }
+function fbTerbit_(fbId, teks) {
+  if (fbId) {
+    const r = fbApi_(fbId, { message: teks });
+    if (r.ok) return { ok: true, id: fbId, baru: false };
+    // 100 = post sudah dipadam manual → post baru. Ralat lain: jangan post kedua.
+    if (r.kod !== 100) return { ok: false, ralat: r.ralat };
+  }
+  const r = fbApi_(prop_(P.FB_PAGE) + '/feed', { message: teks });
+  if (!r.ok) return { ok: false, ralat: r.ralat };
+  return { ok: true, id: String(r.id), baru: true };
+}
+
+// Panggilan Graph API. Token dihantar dalam badan (POST) supaya tidak masuk URL.
+function fbApi_(laluan, medan, kaedah) {
+  const token = prop_(P.FB_TOKEN);
+  if (!token) return { ok: false, ralat: 'FB_TOKEN tiada' };
+  kaedah = kaedah || 'post';
+  const param = Object.assign({}, medan, { access_token: token });
+  let url = 'https://graph.facebook.com/' + laluan;
+  const opt = { method: kaedah, muteHttpExceptions: true };
+  if (kaedah === 'post') opt.payload = param;
+  else url += '?' + Object.keys(param).map(k => k + '=' + encodeURIComponent(param[k])).join('&');
+  let res;
+  try { res = UrlFetchApp.fetch(url, opt); } catch (e) { return { ok: false, ralat: 'Sambungan gagal: ' + (e.message || e) }; }
+  let j = {};
+  try { j = JSON.parse(res.getContentText()); } catch (e) {}
+  const kod = res.getResponseCode();
+  if (j.error || kod >= 300) return { ok: false, kod: j.error && j.error.code, ralat: (j.error && j.error.message) || ('HTTP ' + kod) };
+  return Object.assign({ ok: true }, j);
+}
+
+// ============================================================
 // FUNGSI DALAMAN
 // ============================================================
 function sheet_() {
@@ -529,6 +676,14 @@ function cariBaris_(sh, id) {
   const ids = sh.getRange(2, COL.ID + 1, n, 1).getValues();
   for (let i = 0; i < n; i++) if (String(ids[i][0]) === id) return i + 2;
   return -1;
+}
+
+// Baca satu baris A → R (selamat walaupun Sheet belum ada kolum R)
+function bacaBaris_(sh, idx) {
+  const n = Math.min(SEMUA_KOLUM, sh.getMaxColumns());
+  const row = sh.getRange(idx, 1, 1, n).getValues()[0];
+  while (row.length < SEMUA_KOLUM) row.push('');
+  return row;
 }
 
 function tukarStatus_(id, status) {
